@@ -16,13 +16,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap">
 <style>
-:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0}
-img{max-width:100%}
-[hidden]{display:none!important}
-
-/* Layout: satu kolom sempit seperti nota kasir. Dua tab (Kasir, Riwayat); bar total menempel di bawah saat di Kasir; nota tampil sebagai kertas struk di atas layar. */
+/* Layout: satu kolom sempit seperti nota kasir. Layar masuk (PIN) -> lima tab: Kasir, Rekap, Stok, Toko, Akun. Bar total menempel di bawah hanya di tab Kasir. */
 :root {
+  color-scheme: light;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   --bg: #f5f7fa;
   --surface: #ffffff;
   --fg: #14202e;
@@ -31,6 +29,7 @@ img{max-width:100%}
   --accent: #d6232a;
   --accent-fg: #ffffff;
   --ok: #1d7a46;
+  --low: #946200;
   --warn: #b3261e;
   --scrim: rgba(12, 20, 30, 0.55);
   --paper: #fbfaf6;
@@ -47,78 +46,65 @@ img{max-width:100%}
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1620;
-    --surface: #18222f;
-    --fg: #eaf0f6;
-    --muted: #9aa8b7;
-    --line: #2a3747;
-    --accent: #ff5a60;
-    --accent-fg: #1a0b0c;
-    --ok: #5fd08f;
-    --warn: #ff8a82;
-    --scrim: rgba(0, 0, 0, 0.7);
-    --dot-original: #ff5a60;
-    --dot-mangga: #ffbe3d;
-    --dot-stroberi: #ff7fa8;
-    --dot-light: #62aef0;
     color-scheme: dark;
+    --bg: #0f1620; --surface: #18222f; --fg: #eaf0f6; --muted: #9aa8b7; --line: #2a3747;
+    --accent: #ff5a60; --accent-fg: #1a0b0c; --ok: #5fd08f; --low: #ffc247; --warn: #ff8a82;
+    --scrim: rgba(0, 0, 0, 0.7);
+    --dot-original: #ff5a60; --dot-mangga: #ffbe3d; --dot-stroberi: #ff7fa8; --dot-light: #62aef0;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1620;
-  --surface: #18222f;
-  --fg: #eaf0f6;
-  --muted: #9aa8b7;
-  --line: #2a3747;
-  --accent: #ff5a60;
-  --accent-fg: #1a0b0c;
-  --ok: #5fd08f;
-  --warn: #ff8a82;
-  --scrim: rgba(0, 0, 0, 0.7);
-  --dot-original: #ff5a60;
-  --dot-mangga: #ffbe3d;
-  --dot-stroberi: #ff7fa8;
-  --dot-light: #62aef0;
   color-scheme: dark;
+  --bg: #0f1620; --surface: #18222f; --fg: #eaf0f6; --muted: #9aa8b7; --line: #2a3747;
+  --accent: #ff5a60; --accent-fg: #1a0b0c; --ok: #5fd08f; --low: #ffc247; --warn: #ff8a82;
+  --scrim: rgba(0, 0, 0, 0.7);
+  --dot-original: #ff5a60; --dot-mangga: #ffbe3d; --dot-stroberi: #ff7fa8; --dot-light: #62aef0;
 }
 
 * { box-sizing: border-box; }
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 1.45;
-  padding-inline: 16px;
-  padding-block: 20px 140px;
-}
+[hidden] { display: none !important; }
+body[data-role="kasir"] .owner-only { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.45; padding-inline: 16px; padding-block: 20px 140px; }
+img { max-width: 100%; }
 .wrap { max-width: 520px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
-.view { display: flex; flex-direction: column; gap: 20px; }
+.view { display: flex; flex-direction: column; gap: 16px; }
 .num { font-variant-numeric: tabular-nums; }
 h1 { font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 1.05; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin: 0; text-wrap: balance; }
-.sub { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
-button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; overflow-wrap: anywhere; }
+.lbl { font-size: 0.85rem; color: var(--muted); }
+.note { margin: 0; color: var(--muted); font-size: 0.88rem; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
-.tabs button { font: inherit; font-weight: 500; padding: 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
+.banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--warn); color: var(--warn); font-size: 0.9rem; }
+.banner span { min-width: 0; flex: 1 1 14rem; }
+
+.tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.tabs button { font: inherit; font-weight: 500; font-size: 0.8rem; padding: 10px 0; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; position: relative; min-width: 0; }
 .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); }
+.pip { position: absolute; top: 6px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
 
-.btn {
-  font: inherit; font-weight: 500; font-size: 0.9rem;
-  background: transparent; color: var(--fg);
-  border: 1px solid var(--line); border-radius: 8px;
-  padding: 9px 14px; cursor: pointer; white-space: nowrap; touch-action: manipulation;
-}
+.btn { font: inherit; font-weight: 500; font-size: 0.9rem; background: transparent; color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 14px; cursor: pointer; touch-action: manipulation; }
 .btn:hover { border-color: var(--muted); }
 .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; }
 .btn.danger { color: var(--warn); }
+.btn.big { padding: 13px 14px; font-size: 1rem; width: 100%; }
 .btn:disabled { opacity: 0.4; cursor: default; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .row-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .row-head p { margin: 0; color: var(--muted); font-size: 0.9rem; }
-
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.pad { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+.fld { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fld label { font-size: 0.85rem; color: var(--muted); }
+.fld input, .fld select, .fld textarea { font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; min-width: 0; width: 100%; }
+.fld textarea { resize: vertical; min-height: 4.5rem; }
+.merr { margin: 0; color: var(--warn); font-size: 0.9rem; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+.check input { width: 22px; height: 22px; flex: none; }
+
 .items { display: flex; flex-direction: column; }
 .item { display: grid; grid-template-columns: 1fr auto; gap: 10px 12px; align-items: center; padding: 16px; }
 .item + .item { border-top: 1px solid var(--line); }
@@ -126,29 +112,20 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
 .name { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
 .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; background: var(--c); }
 .price { color: var(--muted); font-size: 0.88rem; margin-top: 2px; padding-left: 24px; }
+.stk-tag { font-weight: 700; color: var(--ok); white-space: nowrap; }
+.stk-tag.low { color: var(--low); }
+.stk-tag.bad { color: var(--warn); }
 .sum { grid-column: 1 / -1; padding-left: 24px; font-size: 0.88rem; color: var(--muted); min-height: 1.3em; }
 .sum strong { color: var(--fg); font-weight: 700; }
-
+.sum .over { color: var(--warn); font-weight: 700; }
 .stepper { display: flex; align-items: center; gap: 6px; }
-.stepper button {
-  width: 44px; height: 44px; border-radius: 10px;
-  border: 1px solid var(--line); background: var(--bg); color: var(--fg);
-  font: inherit; font-size: 1.4rem; font-weight: 500; line-height: 1; cursor: pointer;
-  display: grid; place-items: center; touch-action: manipulation;
-}
+.stepper button { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 1.4rem; font-weight: 500; line-height: 1; cursor: pointer; display: grid; place-items: center; touch-action: manipulation; }
 .stepper button.plus { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 .stepper button:active { transform: scale(0.95); }
 .stepper button:disabled { opacity: 0.35; cursor: default; }
-.stepper input {
-  width: 56px; height: 44px; text-align: center;
-  font: inherit; font-weight: 700; font-size: 1.15rem; color: var(--fg);
-  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-  -moz-appearance: textfield;
-}
+.stepper input { width: 56px; height: 44px; text-align: center; font: inherit; font-weight: 700; font-size: 1.15rem; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; -moz-appearance: textfield; }
 .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-.pay { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.lbl { font-size: 0.85rem; color: var(--muted); }
 .field { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding-inline: 12px; }
 .field span { color: var(--muted); font-weight: 500; }
 .field input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--fg); font: inherit; font-size: 1.25rem; font-weight: 700; padding: 12px 8px; }
@@ -156,11 +133,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
 .field:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
 .field.plain input { font-size: 1rem; font-weight: 500; padding-inline: 0; }
 .quick { display: flex; flex-wrap: wrap; gap: 8px; }
-.quick button {
-  font: inherit; font-size: 0.9rem; font-weight: 500; color: var(--fg);
-  background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
-  padding: 8px 14px; cursor: pointer; touch-action: manipulation;
-}
+.quick button { font: inherit; font-size: 0.9rem; font-weight: 500; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; touch-action: manipulation; }
 .quick button:hover { border-color: var(--muted); }
 .change { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
 .change .label { color: var(--muted); }
@@ -168,24 +141,15 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
 .change.ok .value { color: var(--ok); }
 .change.short .value { color: var(--warn); }
 
-.bar {
-  position: fixed; left: 0; right: 0; bottom: 0;
-  background: var(--surface); border-top: 1px solid var(--line);
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-  z-index: 10;
-}
+.bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 10; }
 .bar-in { max-width: 520px; margin-inline: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .bar .total { min-width: 0; }
 .bar .total small { display: block; color: var(--muted); font-size: 0.8rem; }
 .bar .total strong { font-family: var(--font-display); font-weight: 800; font-size: 1.7rem; line-height: 1.1; }
 .bar .btn.primary { height: 48px; padding-inline: 18px; font-size: 1rem; }
 
-/* Riwayat */
 .day-pick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.day-pick input {
-  font: inherit; color: var(--fg); background: var(--surface);
-  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0;
-}
+.day-pick input { font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
 .summary { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .omzet small { display: block; color: var(--muted); font-size: 0.85rem; }
 .omzet strong { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; line-height: 1.1; }
@@ -198,53 +162,60 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
 .brow .bn { min-width: 0; font-weight: 500; }
 .brow .bq { color: var(--muted); font-size: 0.88rem; text-align: right; }
 .brow .bt { font-weight: 700; min-width: 5.5rem; text-align: right; }
-.nota-row {
-  display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%;
-  font: inherit; color: var(--fg); text-align: left; background: transparent;
-  border: 0; padding: 12px 16px; cursor: pointer;
-}
-.nota-row + .nota-row { border-top: 1px solid var(--line); }
-.nota-row:hover { background: var(--bg); }
-.nr-main { display: flex; flex-direction: column; min-width: 0; }
-.nr-main small { color: var(--muted); }
-.nr-total { font-weight: 700; }
+.lrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; font: inherit; color: var(--fg); text-align: left; background: transparent; border: 0; padding: 12px 16px; cursor: pointer; }
+.lrow + .lrow { border-top: 1px solid var(--line); }
+.lrow:hover { background: var(--bg); }
+.lr-main { display: flex; flex-direction: column; min-width: 0; }
+.lr-main b { overflow-wrap: anywhere; }
+.lr-main small { color: var(--muted); overflow-wrap: anywhere; }
+.lr-side { font-weight: 700; text-align: right; flex: none; }
+.lr-side small { display: block; color: var(--muted); font-weight: 400; }
 .empty { margin: 0; padding: 16px; color: var(--muted); font-size: 0.92rem; }
-.day-row {
-  display: grid; grid-template-columns: 7rem 1fr auto; gap: 12px; align-items: center; width: 100%;
-  font: inherit; color: var(--fg); text-align: left; background: transparent;
-  border: 0; padding: 12px 16px; cursor: pointer;
-}
+.day-row { display: grid; grid-template-columns: 7rem 1fr auto; gap: 12px; align-items: center; width: 100%; font: inherit; color: var(--fg); text-align: left; background: transparent; border: 0; padding: 12px 16px; cursor: pointer; }
 .day-row + .day-row { border-top: 1px solid var(--line); }
 .day-row[aria-pressed="true"] { background: var(--bg); box-shadow: inset 3px 0 0 var(--accent); }
 .day-row .dl { display: flex; flex-direction: column; min-width: 0; }
 .day-row .dl small { color: var(--muted); }
 .track { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
-.fill { height: 100%; border-radius: 4px; background: var(--accent); }
+.fill { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
 .day-row .dv { font-weight: 700; }
 .foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .foot p { margin: 0; color: var(--muted); font-size: 0.85rem; min-width: 0; }
 
-/* Nota */
+.stk { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.stk-head { display: flex; align-items: center; gap: 10px; }
+.stk-head b { font-family: var(--font-display); font-size: 1.1rem; flex: 1; min-width: 0; }
+.pill { border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.pill.ok { color: var(--ok); } .pill.low { color: var(--low); } .pill.bad { color: var(--warn); } .pill.none { color: var(--muted); }
+.stk-big { font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; line-height: 1.1; }
+.stk-big small { font-family: var(--font-body); font-weight: 400; font-size: 0.9rem; color: var(--muted); }
+.stk-sub { margin: 0; color: var(--muted); font-size: 0.85rem; }
+
+.sync p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.sync p.st { color: var(--fg); font-weight: 500; }
+.sync p.st.ok { color: var(--ok); }
+.sync p.st.bad, .sync p.bad { color: var(--warn); }
+
+.auth { min-height: 100%; display: grid; place-items: center; padding-block: 24px; }
+.auth-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 14px; }
+.linkbtn { font: inherit; font-size: 0.9rem; color: var(--muted); background: none; border: 0; text-decoration: underline; cursor: pointer; padding: 6px; align-self: center; }
+
 .overlay { position: fixed; inset: 0; background: var(--scrim); z-index: 40; overflow-y: auto; padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+#modal { z-index: 50; }
 .sheet { max-width: 360px; margin-inline: auto; display: flex; flex-direction: column; gap: 22px; }
-.paper {
-  position: relative; background: var(--paper); color: var(--ink);
-  font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.5;
-  padding: 22px 18px 24px; border-radius: 4px 4px 0 0;
-  display: flex; flex-direction: column; gap: 12px;
-}
-.paper::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 7px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M0 0h12L6 7z' fill='%23fbfaf6'/%3E%3C/svg%3E") repeat-x left top;
-}
+.modal-box { max-width: 400px; margin: 0 auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.modal-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.codebox { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700; letter-spacing: 0.12em; text-align: center; padding: 14px; border: 1px dashed var(--muted); border-radius: 10px; background: var(--bg); overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; }
+.paper { position: relative; background: var(--paper); color: var(--ink); font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.5; padding: 22px 18px 24px; border-radius: 4px 4px 0 0; display: flex; flex-direction: column; gap: 12px; }
+.paper::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 7px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M0 0h12L6 7z' fill='%23fbfaf6'/%3E%3C/svg%3E") repeat-x left top; }
 .paper hr { border: 0; border-top: 1px dashed var(--paper-line); margin: 0; }
 .r-head { text-align: center; display: flex; flex-direction: column; gap: 2px; }
 .r-shop { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; letter-spacing: 0.04em; text-transform: uppercase; overflow-wrap: anywhere; }
 .r-sub { color: var(--paper-mute); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .r-meta, .r-sum { display: flex; flex-direction: column; gap: 2px; }
 .r-line { display: flex; justify-content: space-between; gap: 12px; }
-.r-line span:last-child { text-align: right; white-space: nowrap; }
-.r-line.muted { color: var(--paper-mute); }
+.r-line span:last-child { text-align: right; overflow-wrap: anywhere; }
+.r-addr { color: var(--paper-mute); overflow-wrap: anywhere; }
 .r-items { display: flex; flex-direction: column; gap: 8px; }
 .r-name { font-weight: 700; overflow-wrap: anywhere; }
 .r-total { font-weight: 700; font-size: 1rem; }
@@ -252,59 +223,118 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
 .sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .sheet-actions .btn { background: var(--surface); }
 .sheet-actions .btn.primary { background: var(--accent); }
-
-.toast {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-  background: var(--fg); color: var(--bg); font-size: 0.9rem; font-weight: 500;
-  padding: 10px 16px; border-radius: 999px; max-width: calc(100% - 32px); text-align: center; z-index: 60;
-}
-
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); font-size: 0.9rem; font-weight: 500; padding: 10px 16px; border-radius: 999px; max-width: calc(100% - 32px); text-align: center; z-index: 60; }
 @media (prefers-reduced-motion: reduce) { .stepper button:active { transform: none; } }
+.desc { font-family: var(--font-body); font-weight: 400; font-size: 0.82rem; color: var(--muted); }
+.field.plain span + input { padding-left: 8px; }
+.pickrow { display: flex; gap: 8px; }
+.pick { flex: 1; min-width: 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; font: inherit; font-size: 1.05rem; font-weight: 700; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 13px 12px; cursor: pointer; text-align: left; touch-action: manipulation; }
+.pick span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.pick.empty { color: var(--muted); font-weight: 500; }
+.pick .chev { color: var(--muted); flex: none; }
+.cinfo { margin: 0; color: var(--muted); font-size: 0.88rem; overflow-wrap: anywhere; }
+.hist { display: flex; flex-direction: column; gap: 8px; }
+.hist h3, h3 { font-family: var(--font-display); font-size: 0.95rem; margin: 0; }
+.hrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.hmain { min-width: 0; display: flex; flex-direction: column; }
+.hmain small { color: var(--muted); overflow-wrap: anywhere; }
+.hside { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
+.tag { font-size: 0.72rem; font-weight: 700; color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; margin-left: 6px; white-space: nowrap; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.seg button { font: inherit; font-weight: 500; padding: 9px 0; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.trow { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 12px 16px; }
+.trow + .trow { border-top: 1px solid var(--line); }
+.trow .tn { min-width: 0; font-weight: 500; overflow-wrap: anywhere; }
+.trow .tq { color: var(--muted); font-size: 0.88rem; text-align: right; }
+.trow .tt { font-weight: 700; min-width: 5.5rem; text-align: right; }
+.ld-grid { display: grid; grid-template-columns: 1fr 96px; gap: 10px 12px; align-items: center; }
+.ld-grid label { min-width: 0; }
+.ld-grid input { font: inherit; font-size: 1rem; text-align: right; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; width: 100%; min-width: 0; }
+.blk { display: block; color: var(--muted); font-size: 0.8rem; }
+.acc-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; flex-wrap: wrap; }
+.acc-row + .acc-row { border-top: 1px solid var(--line); }
+.acc-row .lr-main { flex: 1 1 8rem; }
+.fld input.upper { text-transform: uppercase; }
+
+header { position: relative; }
+.chip { margin-top: 8px; font: inherit; font-size: 0.8rem; font-weight: 700; color: var(--muted); background: var(--surface); border: 1px solid currentColor; border-radius: 999px; padding: 4px 12px; cursor: pointer; touch-action: manipulation; }
+.chip.ok { color: var(--ok); } .chip.low { color: var(--low); } .chip.bad { color: var(--warn); }
+.linkbtn[data-act="stk-void"] { font-size: 0.78rem; padding: 2px 0; }
 </style>
 </head>
-<body>
+<body data-role="">
 
+<div class="auth" id="auth" hidden><div class="auth-box" id="authBox"></div></div>
+
+<div id="app" hidden>
 <div class="wrap">
   <header>
     <h1>Kasir Yakult</h1>
-    <p class="sub">Harga per botol. Simpan tiap pesanan untuk riwayat dan nota.</p>
+    <p class="sub" id="who"></p>
+    <button type="button" class="chip" id="chip" data-act="sync-now" aria-live="polite"></button>
   </header>
 
+  <div class="banner" id="warn" hidden></div>
+
   <nav class="tabs" role="tablist" aria-label="Menu">
-    <button type="button" role="tab" id="tabKasir" aria-selected="true" aria-controls="viewKasir">Kasir</button>
-    <button type="button" role="tab" id="tabRiwayat" aria-selected="false" aria-controls="viewRiwayat">Riwayat</button>
+    <button type="button" role="tab" id="tab-kasir" data-act="tab" data-tab="kasir" aria-selected="true">Kasir</button>
+    <button type="button" role="tab" id="tab-riwayat" data-act="tab" data-tab="riwayat" aria-selected="false">Rekap</button>
+    <button type="button" role="tab" id="tab-stok" data-act="tab" data-tab="stok" aria-selected="false">Stok<span class="pip" id="pip" hidden></span></button>
+    <button type="button" role="tab" id="tab-pelanggan" data-act="tab" data-tab="pelanggan" aria-selected="false">Toko</button>
+    <button type="button" role="tab" id="tab-akun" data-act="tab" data-tab="akun" aria-selected="false">Akun</button>
   </nav>
 
-  <section class="view" id="viewKasir" role="tabpanel" aria-labelledby="tabKasir">
+  <!-- KASIR -->
+  <section class="view" id="view-kasir" role="tabpanel" aria-labelledby="tab-kasir">
     <div class="row-head">
-      <p>Tekan + untuk tambah satu botol.</p>
-      <button class="btn" id="reset" type="button">Pesanan baru</button>
+      <p>Tekan + untuk tambah satu pak.</p>
+      <button class="btn" type="button" data-act="reset">Pesanan baru</button>
     </div>
-
-    <div class="card items" id="items" aria-label="Daftar varian"></div>
-
-    <div class="card pay" aria-label="Pembayaran">
+    <div class="card pad">
+      <span class="lbl">Toko / pelanggan</span>
+      <div class="pickrow">
+        <button type="button" class="pick empty" id="pickBtn" data-act="pick-cust"><span id="pickLabel">Pilih toko pelanggan…</span><span class="chev" aria-hidden="true">▾</span></button>
+        <button type="button" class="btn" id="pickClear" data-act="pick-clear" aria-label="Hapus pilihan toko" hidden>Ganti</button>
+      </div>
+      <div id="custInfo" class="view" style="gap:10px"></div>
+    </div>
+    <div class="card items" id="items" aria-label="Daftar item"></div>
+    <div class="card pad" aria-label="Pembayaran">
       <h2>Pembayaran</h2>
-      <label class="field" for="cash"><span>Rp</span><input id="cash" type="text" inputmode="numeric" placeholder="Uang diterima (kosong = uang pas)" autocomplete="off"></label>
+      <label class="field" for="cash"><span>Rp</span><input id="cash" type="text" inputmode="numeric" placeholder="Uang diterima (boleh kosong)" autocomplete="off"></label>
       <div class="quick" id="quick"></div>
       <div class="change" id="change"><span class="label">Kembalian</span><span class="value num" id="changeVal">Rp 0</span></div>
-      <div>
-        <label class="lbl" for="shop">Nama toko di nota</label>
-        <div class="field plain"><input id="shop" type="text" maxlength="40" placeholder="Penjualan Yakult" autocomplete="off"></div>
-      </div>
     </div>
   </section>
 
-  <section class="view" id="viewRiwayat" role="tabpanel" aria-labelledby="tabRiwayat" hidden>
+  <!-- REKAP -->
+  <section class="view" id="view-riwayat" role="tabpanel" aria-labelledby="tab-riwayat" hidden>
+    <div class="seg" id="seg" role="group" aria-label="Periode">
+      <button type="button" data-act="period" data-p="hari" aria-pressed="true">Harian</button>
+      <button type="button" data-act="period" data-p="minggu" aria-pressed="false">Mingguan</button>
+      <button type="button" data-act="period" data-p="bulan" aria-pressed="false">Bulanan</button>
+    </div>
     <div class="day-pick">
       <label class="lbl" for="day">Tanggal</label>
       <input type="date" id="day">
-      <button class="btn" id="today" type="button">Hari ini</button>
+      <button class="btn" type="button" data-act="today">Hari ini</button>
     </div>
+    <div class="fld owner-only"><label for="whoSel">Tampilkan sales</label><select id="whoSel"></select></div>
     <div class="card summary" id="summary"></div>
 
-    <h2>Per varian</h2>
+    <h2>Per item</h2>
     <div class="card" id="breakdown"></div>
+
+    <div id="bySalesBox" class="view" hidden>
+      <h2>Per sales</h2>
+      <div class="card" id="bySales"></div>
+    </div>
+
+    <div id="byShopBox" class="view" hidden>
+      <h2>Per toko</h2>
+      <div class="card" id="byShop"></div>
+    </div>
 
     <h2 id="dayTitle">Nota</h2>
     <div class="card" id="dayList"></div>
@@ -313,8 +343,85 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
     <div class="card" id="daysList"></div>
 
     <div class="foot">
-      <p id="storeNote"></p>
-      <button class="btn" id="csv" type="button" hidden>Unduh rekap (CSV)</button>
+      <p id="rekapNote"></p>
+      <button class="btn" type="button" data-act="csv" id="csvBtn" hidden>Simpan rekap (CSV)</button>
+    </div>
+  </section>
+
+  <!-- STOK BAWA -->
+  <section class="view" id="view-stok" role="tabpanel" aria-labelledby="tab-stok" hidden>
+    <div class="fld owner-only"><label for="stkUser">Lihat stok</label><select id="stkUser"></select></div>
+    <p class="note" id="stkNote"></p>
+    <div class="btns" id="stkBtns"></div>
+    <div id="stokList" class="view"></div>
+    <div id="stkSalesBox" class="view" hidden>
+      <h2>Stok di tangan sales</h2>
+      <div class="card" id="stkSales"></div>
+    </div>
+    <h2>Tutup hari terakhir</h2>
+    <div class="card" id="closeList"></div>
+    <h2>Catatan stok terbaru</h2>
+    <div class="card" id="stokLog"></div>
+  </section>
+
+  <!-- TOKO / PELANGGAN -->
+  <section class="view" id="view-pelanggan" role="tabpanel" aria-labelledby="tab-pelanggan" hidden>
+    <div class="row-head">
+      <p id="custCount"></p>
+      <button class="btn primary" type="button" data-act="cust-add">Tambah toko</button>
+    </div>
+    <div class="fld"><label for="cSearch">Cari</label><input id="cSearch" type="search" placeholder="Nama toko, kontak, atau telepon" autocomplete="off"></div>
+    <div class="card" id="custList"></div>
+  </section>
+
+  <!-- AKUN -->
+  <section class="view" id="view-akun" role="tabpanel" aria-labelledby="tab-akun" hidden>
+    <div class="card pad">
+      <h2>Akun saya</h2>
+      <p class="note" id="whoami"></p>
+      <label class="check" for="setLock"><input type="checkbox" id="setLock"><span>Minta PIN setiap aplikasi dibuka (di HP ini)</span></label>
+      <div class="btns">
+        <button class="btn" type="button" data-act="my-pin">Ganti PIN</button>
+        <button class="btn danger" type="button" data-act="logout">Keluar</button>
+      </div>
+    </div>
+
+    <div class="card pad owner-only">
+      <h2>Pengguna</h2>
+      <p class="note">Setiap sales punya akun dan PIN sendiri, dan bisa memakai HP-nya sendiri. Batas 40 akun.</p>
+      <div id="accList"></div>
+      <div class="btns">
+        <button class="btn primary" type="button" data-act="acc-add">Tambah sales</button>
+        <button class="btn" type="button" data-act="invite">Salin tautan undangan</button>
+      </div>
+    </div>
+
+    <div class="card pad owner-only">
+      <h2>Usaha</h2>
+      <div class="fld"><label for="setShop">Nama usaha di nota</label><input id="setShop" type="text" maxlength="40" autocomplete="off"></div>
+      <div class="fld"><label for="setLow">Tandai stok menipis jika sisa sama dengan atau di bawah (pak)</label><input id="setLow" type="number" inputmode="numeric" min="0" max="9999"></div>
+      <div class="btns"><button class="btn" type="button" data-act="new-code">Buat kode pemulihan baru</button></div>
+    </div>
+
+    <div class="card pad owner-only">
+      <h2>Harga per pak</h2>
+      <div id="priceList" class="view" style="gap:10px"></div>
+      <p class="note">Harga baru berlaku untuk penjualan berikutnya di semua HP. Nota lama tidak berubah.</p>
+    </div>
+
+    <div class="card pad owner-only">
+      <h2>Pindahkan data lama</h2>
+      <p class="note">Punya cadangan (.json) dari aplikasi versi lama di satu HP? Toko dan penjualannya bisa dimasukkan ke data bersama.</p>
+      <div class="btns"><button class="btn" type="button" data-act="bk-import">Pilih file cadangan lama</button></div>
+      <input type="file" id="bkFile" accept="application/json,.json" hidden>
+    </div>
+
+    <div class="card pad sync">
+      <h2>Sambungan</h2>
+      <p class="st" id="syncStatus"></p>
+      <p id="syncMsg" hidden></p>
+      <div class="btns"><button class="btn primary" type="button" data-act="sync-now">Sinkronkan sekarang</button></div>
+      <p class="note" id="stInfo"></p>
     </div>
   </section>
 </div>
@@ -322,538 +429,1314 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
 <div class="bar" id="bar">
   <div class="bar-in">
     <div class="total"><small>Total bayar &middot; <span class="num" id="totalQty">0</span> botol</small><strong class="num" id="totalPrice">Rp 0</strong></div>
-    <button class="btn primary" id="save" type="button" disabled>Simpan &amp; nota</button>
+    <button class="btn primary" id="save" type="button" data-act="save" disabled>Simpan &amp; nota</button>
   </div>
 </div>
+</div>
 
-<div class="overlay" id="overlay" hidden>
-  <div class="sheet" role="dialog" aria-modal="true" aria-label="Nota penjualan" id="sheet">
+<div class="overlay" id="rOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Nota penjualan">
     <div class="paper" id="paper"></div>
     <div class="sheet-actions">
-      <button class="btn" id="rCopy" type="button">Salin nota</button>
-      <button class="btn" id="rDl" type="button" hidden>Unduh .txt</button>
-      <button class="btn danger" id="rDel" type="button" hidden>Hapus</button>
-      <button class="btn primary" id="rClose" type="button">Selesai</button>
+      <button class="btn" type="button" data-act="r-share">Bagikan</button>
+      <button class="btn" type="button" data-act="r-copy">Salin nota</button>
+      <button class="btn" type="button" data-act="r-dl">Simpan .txt</button>
+      <button class="btn danger owner-only" type="button" data-act="r-del" id="rDel" hidden>Hapus</button>
+      <button class="btn primary" type="button" data-act="r-close" id="rClose">Selesai</button>
     </div>
   </div>
 </div>
 
+<div class="overlay" id="modal" hidden><div class="modal-box" id="modalBox" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
 (function () {
-  var PRODUCTS = [
-    { id: "original", name: "Yakult Original", price: 2000, color: "var(--dot-original)" },
-    { id: "mangga",   name: "Yakult Mangga",   price: 2100, color: "var(--dot-mangga)" },
-    { id: "stroberi", name: "Yakult Stroberi", price: 2100, color: "var(--dot-stroberi)" },
-    { id: "light",    name: "Yakult Light",    price: 2500, color: "var(--dot-light)" }
+  "use strict";
+
+  /* ================= data tetap ================= */
+  const PRODUCTS = [
+    { id: "YO05", name: "YO05", desc: "Yakult Original", isi: 5, price: 10000, color: "var(--dot-original)" },
+    { id: "YO02", name: "YO02", desc: "Yakult Original", isi: 2, price: 4000,  color: "var(--dot-original)" },
+    { id: "OM05", name: "OM05", desc: "Yakult Mangga",   isi: 5, price: 10500, color: "var(--dot-mangga)" },
+    { id: "OM02", name: "OM02", desc: "Yakult Mangga",   isi: 2, price: 4200,  color: "var(--dot-mangga)" },
+    { id: "OS05", name: "OS05", desc: "Yakult Stroberi", isi: 5, price: 10500, color: "var(--dot-stroberi)" },
+    { id: "OS02", name: "OS02", desc: "Yakult Stroberi", isi: 2, price: 4200,  color: "var(--dot-stroberi)" },
+    { id: "YT05", name: "YT05", desc: "Yakult Light",    isi: 5, price: 12500, color: "var(--dot-light)" },
+    { id: "YT02", name: "YT02", desc: "Yakult Light",    isi: 2, price: 5000,  color: "var(--dot-light)" }
   ];
-  var QUICK = [5000, 10000, 20000, 50000, 100000];
-  var MAX = 9999;
-  var LS_SALES = "yakult-kasir-sales-v1";
-  var LS_SHOP = "yakult-kasir-shop";
+  const PBY = {}; PRODUCTS.forEach((p) => { PBY[p.id] = p; });
+  const QUICK = [5000, 10000, 20000, 50000, 100000];
+  const MAX = 9999;
+  const KC = "yk6-cfg", KD = "yk6-data";
+  const TABS = ["kasir", "riwayat", "stok", "pelanggan", "akun"];
+  const DEFAULT_SHOP = "Penjualan Yakult";
+  const KEEP_DAYS = 150;
+  const SYNC_EVERY = 45000;
 
-  var qty = {};
-  PRODUCTS.forEach(function (p) { qty[p.id] = 0; });
-  var sales = [];
-  var mode = "local";
-  var dbRef = null;
-  var dl = null;
-  var ready = false;
-  var saving = false;
-  var selectedDay = dateKey(Date.now());
-  var openSale = null;
-  var openFromHistory = false;
-  var confirming = false;
-  var lastFocus = null;
-  var toastTimer = null;
+  /* ================= util ================= */
+  const $ = (id) => document.getElementById(id);
+  const nf = (n) => Math.round(Number(n) || 0).toLocaleString("id-ID");
+  const rp = (n) => "Rp " + nf(n);
+  const pad = (n, w) => String(n).padStart(w || 2, "0");
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const rnd = () => Math.random().toString(36).slice(2, 7);
+  const newId = (p) => p + Date.now().toString(36) + rnd();
+  const dateKey = (ts) => { const d = new Date(ts); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+  const keyDate = (k) => { const p = k.split("-"); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); };
+  const fmtLong = (k) => keyDate(k).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const fmtShort = (k) => keyDate(k).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" });
+  const fmtTime = (ts) => { const d = new Date(ts); return pad(d.getHours()) + "." + pad(d.getMinutes()); };
+  const fmtStamp = (ts) => keyDate(dateKey(ts)).toLocaleDateString("id-ID", { day: "numeric", month: "short" }) + " " + fmtTime(ts);
+  const relDays = (k) => Math.round((keyDate(dateKey(Date.now())) - keyDate(k)) / 86400000);
+  const relText = (d) => (d <= 0 ? "Hari ini" : d === 1 ? "Kemarin" : d + " hari lalu");
+  const norm = (s) => String(s).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const roleName = (r) => (r === "owner" ? "Admin" : "Sales");
+  const validPin = (p) => /^\d{4,6}$/.test(p);
+  const validUrl = (u) => /^https:\/\/script\.google\.com\/(a\/[^\/]+\/)?macros\/s\/[A-Za-z0-9_\-]+\/exec$/.test(u);
 
-  function $(id) { return document.getElementById(id); }
-  function nf(n) { return Math.round(Number(n) || 0).toLocaleString("id-ID"); }
-  function rp(n) { return "Rp " + nf(n); }
-  function pad(n, w) { var s = String(n); while (s.length < (w || 2)) s = "0" + s; return s; }
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
-  function dateKey(ts) {
-    var d = new Date(ts);
-    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-  }
-  function keyDate(key) {
-    var p = key.split("-");
-    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-  }
-  function fmtLong(key) {
-    return keyDate(key).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  }
-  function fmtShort(key) {
-    return keyDate(key).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" });
-  }
-  function fmtTime(ts) {
-    var d = new Date(ts);
-    return pad(d.getHours()) + "." + pad(d.getMinutes());
-  }
-  function invNo(s) { return "YK-" + s.date.replace(/-/g, "") + "-" + pad(s.no, 3); }
-
-  /* ---------- penyimpanan ---------- */
-  function clean(id, r) {
-    var ts = Number(r.ts) || 0;
-    var items = Array.isArray(r.items) ? r.items.map(function (i) {
-      return { id: String(i.id || ""), name: String(i.name || ""), price: Number(i.price) || 0, qty: Number(i.qty) || 0 };
-    }) : [];
-    return {
-      id: String(id), ts: ts, date: dateKey(ts), no: Number(r.no) || 0,
-      shop: String(r.shop || ""), items: items,
-      qty: Number(r.qty) || 0, total: Number(r.total) || 0,
-      cash: Number(r.cash) || 0, change: Number(r.change) || 0
-    };
-  }
-  function loadLocal() {
-    try {
-      var raw = JSON.parse(localStorage.getItem(LS_SALES) || "[]");
-      if (!Array.isArray(raw)) return [];
-      return raw.map(function (r) { return clean(r.id || "", r); }).filter(function (s) { return s.ts > 0; })
-        .sort(function (a, b) { return b.ts - a.ts; });
-    } catch (e) { return []; }
-  }
-  function saveLocal() {
-    try { localStorage.setItem(LS_SALES, JSON.stringify(sales)); } catch (e) {}
-  }
-  function useLocal() {
-    mode = "local"; dbRef = null; sales = loadLocal(); ready = true; renderAll();
-  }
-  function body(s) {
-    return { ts: s.ts, no: s.no, shop: s.shop, items: s.items, qty: s.qty, total: s.total, cash: s.cash, change: s.change };
-  }
-  function persist(s) {
-    if (mode === "db" && dbRef) return dbRef.collection("sales").doc(s.id).set(body(s));
-    sales.unshift(s);
-    saveLocal();
-    return Promise.resolve();
-  }
-  function remove(s) {
-    if (mode === "db" && dbRef) return dbRef.doc("sales/" + s.id).delete();
-    sales = sales.filter(function (x) { return x.id !== s.id; });
-    saveLocal();
-    return Promise.resolve();
-  }
-  function errMsg(e, fallback) {
-    var c = e && e.code;
-    if (c === "invalid_argument") return "Akun ini tidak punya izin mengubah data penjualan.";
-    if (c === "quota_exceeded") return "Penyimpanan penuh. Hapus nota lama lalu coba lagi.";
-    return fallback;
+  let toastTimer = null;
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
   }
 
-  /* ---------- kasir ---------- */
-  var itemsEl = $("items");
-  PRODUCTS.forEach(function (p) {
-    var row = document.createElement("div");
-    row.className = "item";
-    row.innerHTML =
-      '<div class="info">' +
-        '<div class="name"><span class="dot" style="--c:' + p.color + '"></span>' + p.name + '</div>' +
-        '<div class="price num">' + rp(p.price) + ' / botol</div>' +
-      '</div>' +
-      '<div class="stepper">' +
-        '<button type="button" data-act="minus" data-id="' + p.id + '" aria-label="Kurangi ' + p.name + '">&minus;</button>' +
-        '<input id="q-' + p.id + '" class="num" type="number" inputmode="numeric" min="0" max="' + MAX + '" value="0" aria-label="Jumlah ' + p.name + '">' +
-        '<button type="button" class="plus" data-act="plus" data-id="' + p.id + '" aria-label="Tambah ' + p.name + '">+</button>' +
-      '</div>' +
-      '<div class="sum num" id="s-' + p.id + '"></div>';
-    itemsEl.appendChild(row);
-  });
+  /* ================= penyimpanan lokal ================= */
+  let storageBad = false;
+  function lsGet(k, d) { try { const r = localStorage.getItem(k); return r === null ? d : JSON.parse(r); } catch (e) { return d; } }
+  function lsSetRaw(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  function storageWorks() { try { localStorage.setItem("yk-test", "1"); localStorage.removeItem("yk-test"); return true; } catch (e) { return false; } }
 
-  var quickEl = $("quick");
-  var exact = document.createElement("button");
-  exact.type = "button"; exact.textContent = "Uang pas"; exact.dataset.cash = "exact";
-  quickEl.appendChild(exact);
-  QUICK.forEach(function (v) {
-    var b = document.createElement("button");
-    b.type = "button"; b.textContent = nf(v); b.dataset.cash = String(v);
-    quickEl.appendChild(b);
-  });
+  let cfg = { url: "", sess: null, lock: false, last: "" };
+  const fresh = () => ({ cursor: 0, nota: {}, pel: {}, stok: {}, users: [], settings: { shop: DEFAULT_SHOP, low: 10, prices: {} }, queue: [], rej: [], lastSync: 0, skew: 0, statusUsers: [], shopName: "" });
+  let D = fresh();
+  let ver = 0, cacheVer = -1, cacheList = [];
 
-  function totals() {
-    var q = 0, t = 0;
-    PRODUCTS.forEach(function (p) { q += qty[p.id]; t += qty[p.id] * p.price; });
-    return { q: q, t: t };
-  }
-  function cashValue() {
-    var raw = $("cash").value.replace(/\D/g, "");
-    return raw ? parseInt(raw, 10) : 0;
-  }
-  function shopName() {
-    var v = $("shop").value.trim();
-    return v || "Penjualan Yakult";
-  }
-
-  function renderKasir() {
-    PRODUCTS.forEach(function (p) {
-      var n = qty[p.id];
-      var input = $("q-" + p.id);
-      if (document.activeElement !== input) input.value = n;
-      document.querySelector('[data-act="minus"][data-id="' + p.id + '"]').disabled = n === 0;
-      $("s-" + p.id).innerHTML = n > 0
-        ? n + " &times; " + rp(p.price) + " = <strong>" + rp(n * p.price) + "</strong>"
-        : "";
-    });
-    var tt = totals();
-    $("totalQty").textContent = nf(tt.q);
-    $("totalPrice").textContent = rp(tt.t);
-
-    var cash = cashValue();
-    var box = $("change");
-    box.className = "change";
-    if (cash === 0) {
-      $("changeVal").textContent = "Rp 0";
-      box.querySelector(".label").textContent = "Kembalian";
-    } else if (cash >= tt.t) {
-      $("changeVal").textContent = rp(cash - tt.t);
-      box.querySelector(".label").textContent = "Kembalian";
-      box.classList.add("ok");
-    } else {
-      $("changeVal").textContent = rp(tt.t - cash);
-      box.querySelector(".label").textContent = "Uang kurang";
-      box.classList.add("short");
+  function loadAll() {
+    const c = lsGet(KC, null);
+    if (c && typeof c === "object") cfg = { url: String(c.url || ""), sess: c.sess && c.sess.token && c.sess.user ? c.sess : null, lock: !!c.lock, last: String(c.last || "") };
+    const d = lsGet(KD, null);
+    if (d && typeof d === "object") {
+      const f = fresh();
+      D = Object.assign(f, d);
+      ["nota", "pel", "stok"].forEach((k) => { if (!D[k] || typeof D[k] !== "object" || Array.isArray(D[k])) D[k] = {}; });
+      ["users", "queue", "rej", "statusUsers"].forEach((k) => { if (!Array.isArray(D[k])) D[k] = []; });
+      if (!D.settings || typeof D.settings !== "object") D.settings = f.settings;
+      D.settings.prices = D.settings.prices && typeof D.settings.prices === "object" ? D.settings.prices : {};
     }
-    $("save").disabled = !(ready && !saving && tt.q > 0 && (cash === 0 || cash >= tt.t));
+  }
+  function pruneOld() {
+    const cut = Date.now() - KEEP_DAYS * 86400000;
+    const keep = {};
+    D.queue.forEach((o) => { if (o.d && o.d.id) keep[o.d.id] = 1; });
+    Object.keys(D.nota).forEach((id) => { if (D.nota[id].ts < cut && !keep[id]) delete D.nota[id]; });
+    Object.keys(D.stok).forEach((id) => { if (D.stok[id].ts < cut - 240 * 86400000 && !keep[id]) delete D.stok[id]; });
+    ver++;
+  }
+  function persist() {
+    const ok1 = lsSetRaw(KC, cfg);
+    let ok2 = lsSetRaw(KD, D);
+    if (!ok2) { pruneOld(); ok2 = lsSetRaw(KD, D); }
+    if (!(ok1 && ok2)) { storageBad = true; renderWarn(); return false; }
+    if (storageBad) { storageBad = false; renderWarn(); }
+    return true;
+  }
+  function wipeData() { D = fresh(); ver++; }
+
+  /* ================= data turunan ================= */
+  const settings = () => D.settings;
+  const priceOf = (p) => { const v = D.settings.prices && D.settings.prices[p.id]; return Number.isFinite(v) && v >= 0 ? v : p.price; };
+  function notaList() {
+    if (cacheVer !== ver) {
+      cacheList = Object.keys(D.nota).map((k) => D.nota[k]).filter((n) => !n.del).sort((a, b) => b.ts - a.ts);
+      cacheVer = ver;
+    }
+    return cacheList;
+  }
+  const custList = () => Object.keys(D.pel).map((k) => D.pel[k]).filter((c) => !c.del);
+  const custNotas = (id) => notaList().filter((n) => n.cust && n.cust.id === id);
+  const userName = (id) => { if (id === "GUDANG") return "Gudang"; const u = D.users.find((x) => x.id === id); return u ? u.name : ""; };
+  const pendingOf = (id) => D.queue.some((o) => o.d && o.d.id === id);
+  const notaDate = (n) => dateKey(n.ts);
+  function nextTs() {
+    let m = 0;
+    Object.keys(D.stok).forEach((k) => { if (D.stok[k].ts > m) m = D.stok[k].ts; });
+    D.lastTs = Math.max(Date.now(), m + 1, (D.lastTs || 0) + 1);
+    return D.lastTs;
   }
 
-  function setQty(id, n) {
-    n = parseInt(n, 10);
-    if (isNaN(n) || n < 0) n = 0;
-    if (n > MAX) n = MAX;
-    qty[id] = n;
-    renderKasir();
-  }
-
-  itemsEl.addEventListener("click", function (e) {
-    var b = e.target.closest("button[data-act]");
-    if (!b) return;
-    var id = b.dataset.id;
-    setQty(id, qty[id] + (b.dataset.act === "plus" ? 1 : -1));
-  });
-  itemsEl.addEventListener("input", function (e) {
-    if (e.target.tagName !== "INPUT") return;
-    setQty(e.target.id.replace("q-", ""), e.target.value);
-  });
-  itemsEl.addEventListener("focusout", function (e) {
-    if (e.target.tagName === "INPUT") renderKasir();
-  });
-
-  $("cash").addEventListener("input", function (e) {
-    var raw = e.target.value.replace(/\D/g, "");
-    e.target.value = raw ? parseInt(raw, 10).toLocaleString("id-ID") : "";
-    renderKasir();
-  });
-  quickEl.addEventListener("click", function (e) {
-    var b = e.target.closest("button[data-cash]");
-    if (!b) return;
-    var v = b.dataset.cash === "exact" ? totals().t : parseInt(b.dataset.cash, 10);
-    $("cash").value = v ? nf(v) : "";
-    renderKasir();
-  });
-
-  try { $("shop").value = localStorage.getItem(LS_SHOP) || ""; } catch (e) {}
-  $("shop").addEventListener("input", function () {
-    try { localStorage.setItem(LS_SHOP, $("shop").value); } catch (e) {}
-  });
-
-  function resetOrder() {
-    PRODUCTS.forEach(function (p) { qty[p.id] = 0; });
-    $("cash").value = "";
-    renderKasir();
-  }
-  $("reset").addEventListener("click", resetOrder);
-
-  function nextNo(day) {
-    var m = 0;
-    sales.forEach(function (s) { if (s.date === day && s.no > m) m = s.no; });
-    return m + 1;
-  }
-
-  $("save").addEventListener("click", function () {
-    if (saving || !ready) return;
-    var tt = totals();
-    if (!tt.q) return;
-    var cash = cashValue();
-    var paid = cash > 0 ? cash : tt.t;
-    if (paid < tt.t) return;
-    var now = Date.now();
-    var items = [];
-    PRODUCTS.forEach(function (p) {
-      if (qty[p.id] > 0) items.push({ id: p.id, name: p.name, price: p.price, qty: qty[p.id] });
+  /* ================= stok ================= */
+  function stockOf(fid) {
+    const r = {}; PRODUCTS.forEach((p) => { r[p.id] = { masuk: 0, bawa: 0, kembali: 0, koreksi: 0, sold: 0, now: 0 }; });
+    let any = false;
+    Object.keys(D.stok).forEach((k) => {
+      const e = D.stok[k];
+      if (e.void || !r[e.code]) return;
+      if (fid === "GUDANG") {
+        if (e.type === "masuk") { r[e.code].masuk += e.qty; r[e.code].now += e.qty; any = true; }
+        else if (e.type === "bawa") { r[e.code].bawa += e.qty; r[e.code].now -= e.qty; any = true; }
+        else if (e.type === "kembali") { r[e.code].kembali += e.qty; r[e.code].now += e.qty; any = true; }
+      } else if (e.fid === fid) {
+        any = true;
+        if (e.type === "bawa") { r[e.code].bawa += e.qty; r[e.code].now += e.qty; }
+        else if (e.type === "kembali") { r[e.code].kembali += e.qty; r[e.code].now -= e.qty; }
+        else if (e.type === "hitung") { r[e.code].koreksi += e.qty; r[e.code].now += e.qty; }
+      }
     });
-    var sale = clean("s" + now.toString(36) + Math.random().toString(36).slice(2, 6), {
-      ts: now, no: nextNo(dateKey(now)), shop: shopName(), items: items,
-      qty: tt.q, total: tt.t, cash: paid, change: paid - tt.t
-    });
-    saving = true;
-    renderKasir();
-    persist(sale).then(function () {
-      saving = false;
-      resetOrder();
-      showReceipt(sale, false);
-      toast("Penjualan tersimpan");
-    }).catch(function (e) {
-      saving = false;
-      renderKasir();
-      toast(errMsg(e, "Gagal menyimpan. Coba lagi."));
-    });
-  });
+    if (fid !== "GUDANG") {
+      notaList().forEach((n) => { if (n.uid === fid) n.items.forEach((i) => { if (r[i.i]) { r[i.i].sold += i.q; r[i.i].now -= i.q; } }); });
+    }
+    return { set: any, rows: r };
+  }
+  const stockTotal = (s) => PRODUCTS.reduce((a, p) => a + s.rows[p.id].now, 0);
 
-  /* ---------- riwayat ---------- */
-  function renderHistory() {
-    var day = selectedDay;
-    $("day").value = day;
-    var ds = sales.filter(function (s) { return s.date === day; });
-    var omzet = 0, botol = 0;
-    ds.forEach(function (s) { omzet += s.total; botol += s.qty; });
-    $("summary").innerHTML =
-      '<div class="omzet"><small>Omzet ' + esc(fmtLong(day)) + '</small><strong class="num">' + rp(omzet) + '</strong></div>' +
-      '<div class="stats"><div><b class="num">' + nf(ds.length) + '</b><span>nota</span></div>' +
-      '<div><b class="num">' + nf(botol) + '</b><span>botol terjual</span></div></div>';
+  /* ================= PIN lokal (kunci aplikasi) ================= */
+  async function hashPin(pin, salt) {
+    const s = salt + ":" + pin;
+    if (window.crypto && crypto.subtle && window.TextEncoder) {
+      const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+      return Array.from(new Uint8Array(b)).map((x) => pad(x.toString(16))).join("");
+    }
+    return "";
+  }
 
-    var by = {};
-    PRODUCTS.forEach(function (p) { by[p.id] = { q: 0, t: 0 }; });
-    ds.forEach(function (s) {
-      s.items.forEach(function (i) {
-        if (by[i.id]) { by[i.id].q += i.qty; by[i.id].t += i.qty * i.price; }
+  /* ================= jaringan ================= */
+  let authLostHandler = null;
+  async function rawCall(payload) {
+    let timer = null;
+    const opts = { method: "POST", body: JSON.stringify(payload) };
+    if (typeof AbortController === "function") { const ac = new AbortController(); opts.signal = ac.signal; timer = setTimeout(() => ac.abort(), 25000); }
+    try {
+      const r = await fetch(cfg.url, opts);
+      if (!r.ok) return { ok: false, err: "net" };
+      const j = await r.json();
+      return j && typeof j === "object" ? j : { ok: false, err: "net" };
+    } catch (e) { return { ok: false, err: "net" }; }
+    finally { if (timer) clearTimeout(timer); }
+  }
+  async function call(a, extra) {
+    if (!cfg.url) return { ok: false, err: "net" };
+    const p = Object.assign({ a }, extra || {});
+    if (cfg.sess) p.t = cfg.sess.token;
+    const r = await rawCall(p);
+    if (!r.ok && r.err === "auth" && cfg.sess && authLostHandler) authLostHandler();
+    return r;
+  }
+  const NETMSG = "Tidak bisa tersambung ke server. Cek internet lalu coba lagi.";
+  function errText(r) {
+    switch (r.err) {
+      case "net": return NETMSG;
+      case "sibuk": return "Server sedang sibuk. Coba lagi sebentar.";
+      case "auth": return "Sesi berakhir. Masuk lagi.";
+      case "izin": return "Akun ini tidak punya izin untuk itu.";
+      case "server": return "Server mengalami masalah: " + (r.msg || "tidak diketahui");
+      case "nama": return "Isi nama dengan benar.";
+      case "pin": return r.sisa === 0 ? "Terlalu banyak PIN salah. Akun dikunci 5 menit." : r.sisa !== undefined ? "PIN salah. Sisa percobaan: " + r.sisa + "." : "PIN tidak sesuai.";
+      case "pinbaru": return "PIN baru harus 4 sampai 6 angka.";
+      case "terkunci": return "Terlalu banyak PIN salah. Coba lagi dalam " + Math.max(1, Math.ceil((r.wait || 60) / 60)) + " menit.";
+      case "kode": return r.sisa !== undefined ? "Kode pemulihan salah. Sisa percobaan: " + r.sisa + "." : "Kode pemulihan salah.";
+      case "namaada": return "Nama itu sudah dipakai akun lain.";
+      case "kodeada": return "Kode nota itu sudah dipakai akun lain.";
+      case "penuh": return "Jumlah akun sudah penuh (40).";
+      case "pengguna": return "Akun tidak ditemukan atau sudah dinonaktifkan.";
+      case "sudah": return "Server ini sudah punya akun Admin. Muat ulang lalu masuk.";
+      case "diri": return "Tidak bisa menonaktifkan akun sendiri.";
+      case "pemilik": return "Akun Admin tidak bisa dinonaktifkan.";
+      case "data": return "Data tidak valid.";
+    }
+    return "Gagal (" + (r.err || "?") + ").";
+  }
+
+  /* ================= antrean & sinkron ================= */
+  let syncing = false, again = false, syncMsg = "", syncBad = false, syncTimer = null, lastTry = 0, offline = false;
+  function enqueue(t, d) {
+    D.queue.push({ k: newId("q"), t, d, u: cfg.sess.user.id, tries: 0 });
+    persist();
+    syncSoon();
+  }
+  function syncSoon() { clearTimeout(syncTimer); syncTimer = setTimeout(() => { syncNow(); }, 60); }
+  const myQueue = () => (cfg.sess ? D.queue.filter((o) => o.u === cfg.sess.user.id) : []);
+
+  function rejectOp(o, err) {
+    D.rej.push({ t: o.t, id: o.d && o.d.id, err, ts: Date.now(), label: opLabel(o) });
+    if (D.rej.length > 30) D.rej.shift();
+    const id = o.d && o.d.id;
+    if (!id) return;
+    if (o.t === "sale") { delete D.nota[id]; ver++; }
+    else if (o.t === "stok") delete D.stok[id];
+    else if (o.t === "sale_del" && D.nota[id]) { D.nota[id].del = 0; ver++; }
+    else if (o.t === "stok_void" && D.stok[id]) D.stok[id].void = 0;
+    else if (o.t === "cust_del" && D.pel[id]) D.pel[id].del = 0;
+  }
+  function opLabel(o) {
+    const d = o.d || {};
+    if (o.t === "sale") return "Penjualan " + (d.inv || "") + (d.cust ? " · " + d.cust.name : "");
+    if (o.t === "cust") return "Toko " + (d.name || "");
+    if (o.t === "cust_del") return "Hapus toko";
+    if (o.t === "sale_del") return "Hapus nota";
+    if (o.t === "stok") return "Stok " + (d.type || "") + " " + (d.code || "");
+    return "Catatan stok";
+  }
+
+  function mergePull(r) {
+    (r.nota || []).forEach((n) => {
+      if (!n || !n.id) return;
+      const loc = D.nota[n.id];
+      if (loc && loc.del && !n.del && pendingOf(n.id)) return;
+      D.nota[n.id] = n;
+    });
+    (r.pel || []).forEach((c) => { if (c && c.id && !D.queue.some((o) => o.t === "cust" && o.d.id === c.id)) D.pel[c.id] = c; });
+    (r.stok || []).forEach((s) => { if (s && s.id) D.stok[s.id] = s; });
+    ver++;
+  }
+
+  async function syncNow(manual) {
+    if (!cfg.url || !cfg.sess) return;
+    if (syncing) { again = true; return; }
+    syncing = true; lastTry = Date.now(); renderChip();
+    let failed = "", rounds = 0;
+    try {
+      for (;;) {
+        const mine = myQueue(), batch = mine.slice(0, 60);
+        const r = await call("sync", { ops: batch.map((o) => ({ t: o.t, d: o.d })), since: D.cursor });
+        if (!r.ok) { failed = r.err || "net"; if (failed === "server" || failed === "sibuk") syncMsg = errText(r); break; }
+        offline = false;
+        const gone = {};
+        (r.acks || []).forEach((a, i) => {
+          const o = batch[i];
+          if (!o) return;
+          if (a && a.ok) { gone[o.k] = 1; return; }
+          if (a && a.err === "server") { o.tries = (o.tries || 0) + 1; if (o.tries >= 5) { gone[o.k] = 1; rejectOp(o, "server"); } return; }
+          gone[o.k] = 1; rejectOp(o, a && a.err ? a.err : "data");
+        });
+        D.queue = D.queue.filter((o) => !gone[o.k]);
+        mergePull(r);
+        D.cursor = r.cursor || D.cursor;
+        if (Array.isArray(r.users)) D.users = r.users;
+        if (r.settings) D.settings = { shop: r.settings.shop || DEFAULT_SHOP, low: Number.isFinite(Number(r.settings.low)) ? Number(r.settings.low) : 10, prices: r.settings.prices || {} };
+        if (r.me && cfg.sess) cfg.sess.user = r.me;
+        if (r.token && cfg.sess) cfg.sess.token = r.token;
+        if (r.now) D.skew = r.now - Date.now();
+        D.lastSync = Date.now();
+        persist();
+        document.body.dataset.role = cfg.sess.user.role;
+        renderCurrentSoft();
+        rounds++;
+        const removed = Object.keys(gone).length;
+        const left = myQueue().length;
+        if (!(r.more || (left > 0 && removed > 0)) || rounds > 300) break;
+      }
+    } finally { syncing = false; }
+    if (failed === "net") { offline = true; syncMsg = ""; }
+    else if (failed && failed !== "auth" && failed !== "server" && failed !== "sibuk") syncMsg = errText({ err: failed });
+    else if (!failed) syncMsg = "";
+    syncBad = !!failed && failed !== "net";
+    renderChip(); renderSync(); renderWarn();
+    if (manual) toast(failed === "net" ? "Belum ada sinyal. Data tersimpan dan akan dikirim nanti." : failed ? errText({ err: failed }) : "Sinkron selesai");
+    if (again) { again = false; syncSoon(); }
+  }
+  function renderCurrentSoft() {
+    if (!cfg.sess || $("app").hidden) return;
+    if (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !$("modal").hidden) { renderChip(); renderHeader(); renderWarn(); return; }
+    if (!$("modal").hidden) { renderChip(); renderHeader(); renderWarn(); return; }
+    if (curTab === "akun" && document.activeElement && /^(INPUT|SELECT)$/.test(document.activeElement.tagName)) { renderChip(); return; }
+    renderCurrent();
+  }
+  function renderChip() {
+    const c = $("chip");
+    if (!c) return;
+    const n = myQueue().length;
+    let t, cls = "chip";
+    if (syncing) t = "Menyinkronkan…";
+    else if (offline) { t = "Offline" + (n ? " · " + n + " menunggu kirim" : ""); cls += " bad"; }
+    else if (n) { t = n + " menunggu kirim"; cls += " low"; }
+    else if (D.lastSync) { t = "Tersambung · " + fmtTime(D.lastSync); cls += " ok"; }
+    else t = "Belum sinkron";
+    c.textContent = t; c.className = cls;
+  }
+  function renderSync() {
+    const st = $("syncStatus");
+    if (!st) return;
+    const n = myQueue().length;
+    let text, cls = "st";
+    if (syncing) text = "Menyinkronkan…";
+    else if (offline) { text = "Tidak ada sambungan ke server." + (n ? " " + nf(n) + " data menunggu dikirim." : ""); cls += " bad"; }
+    else if (n) { text = nf(n) + " data belum terkirim."; cls += " bad"; }
+    else { text = "Tersambung. Semua data HP ini sudah di server" + (D.lastSync ? " (" + fmtStamp(D.lastSync) + ")" : "") + "."; cls += " ok"; }
+    st.textContent = text; st.className = cls;
+    const m = $("syncMsg");
+    m.textContent = syncMsg; m.className = syncBad ? "bad" : ""; m.hidden = !syncMsg;
+    const others = D.queue.length - n;
+    const info = $("stInfo");
+    if (info) info.textContent = "Data penjualan, toko, dan stok disimpan di spreadsheet server dan disalin ke HP ini supaya tetap bisa dipakai tanpa sinyal." + (others > 0 ? " Ada " + nf(others) + " data milik akun lain di HP ini yang menunggu akun itu masuk lagi." : "");
+  }
+
+  /* ================= state tampilan ================= */
+  let curTab = "kasir", selCust = "", saving = false;
+  let selectedDay = dateKey(Date.now()), period = "hari", whoFilter = "", stkSel = "";
+  let openSale = null, openFromHistory = false, confirmingDel = false;
+  let lastFocus = null, modalState = null;
+  const qty = {};
+  PRODUCTS.forEach((p) => { qty[p.id] = 0; });
+  const me = () => (cfg.sess ? cfg.sess.user : null);
+  const isOwner = () => !!(cfg.sess && cfg.sess.user.role === "owner");
+
+  /* ================= modal ================= */
+  function openModal(o) {
+    lastFocus = document.activeElement;
+    $("modalBox").innerHTML = "<h2>" + esc(o.title) + "</h2>" + (o.body || "") + '<p class="merr" id="mErr" hidden></p><div class="modal-actions" id="mActs"></div>';
+    const acts = $("mActs");
+    const mine = { sticky: !!o.sticky, onClose: o.onClose };
+    modalState = mine;
+    (o.actions || []).forEach((a) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn " + (a.cls || ""); b.textContent = a.label;
+      b.addEventListener("click", async () => {
+        if (b.disabled) return;
+        b.disabled = true;
+        let r;
+        try { r = a.fn ? await a.fn() : undefined; } catch (e) { r = false; }
+        b.disabled = false;
+        if (modalState === mine && r !== false) closeModal();
       });
+      acts.appendChild(b);
     });
-    $("breakdown").innerHTML = PRODUCTS.map(function (p) {
-      return '<div class="brow"><span class="dot" style="--c:' + p.color + '"></span><span class="bn">' + p.name +
-        '</span><span class="bq num">' + nf(by[p.id].q) + ' botol</span><span class="bt num">' + rp(by[p.id].t) + '</span></div>';
-    }).join("");
-
-    $("dayTitle").textContent = "Nota " + fmtShort(day);
-    $("dayList").innerHTML = ds.length ? ds.map(function (s) {
-      return '<button type="button" class="nota-row" data-id="' + esc(s.id) + '"><span class="nr-main"><b>' + esc(invNo(s)) +
-        '</b><small class="num">' + fmtTime(s.ts) + ' &middot; ' + nf(s.qty) + ' botol</small></span><span class="nr-total num">' + rp(s.total) + '</span></button>';
-    }).join("") : '<p class="empty">Belum ada penjualan pada tanggal ini.</p>';
-
-    var agg = {};
-    sales.forEach(function (s) {
-      var a = agg[s.date] || (agg[s.date] = { n: 0, q: 0, t: 0 });
-      a.n += 1; a.q += s.qty; a.t += s.total;
+    $("modal").hidden = false; $("modal").scrollTop = 0;
+    if (o.onOpen) o.onOpen($("modalBox"));
+    const f = $("modalBox").querySelector("input:not([type=checkbox]),select,textarea");
+    if (f && !o.noFocus) f.focus();
+  }
+  function closeModal() {
+    $("modal").hidden = true; $("modalBox").innerHTML = "";
+    const s = modalState; modalState = null;
+    if (s && s.onClose) s.onClose();
+    if (lastFocus && lastFocus.focus && document.contains(lastFocus)) { try { lastFocus.focus(); } catch (e) {} }
+  }
+  const modalErr = (m) => { const e = $("mErr"); if (e) { e.textContent = m; e.hidden = !m; } };
+  const val = (id) => { const e = $(id); return e ? e.value : ""; };
+  function confirmModal(title, text, okLabel, fn, danger) {
+    openModal({ title, body: '<p class="note">' + esc(text) + "</p>", noFocus: true, actions: [{ label: "Batal" }, { label: okLabel, cls: danger ? "danger" : "primary", fn }] });
+  }
+  function copyText(text, okMsg) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(() => toast(okMsg || "Tersalin"), () => toast("Tidak bisa menyalin. Catat manual.")); return; }
+    } catch (e) {}
+    toast("Tidak bisa menyalin. Catat manual.");
+  }
+  function codeModal(code, then) {
+    openModal({
+      title: "Catat kode pemulihan", sticky: true, noFocus: true,
+      body: '<p class="note">Kode ini dipakai jika Anda lupa PIN Admin. Kode hanya tampil sekarang. Catat di buku atau foto layar ini, lalu simpan di tempat aman.</p><div class="codebox" id="codeBox">' + esc(code) + "</div>",
+      actions: [
+        { label: "Salin kode", fn: () => { copyText(code, "Kode disalin"); return false; } },
+        { label: "Sudah saya catat", cls: "primary", fn: () => { setTimeout(then, 0); } }
+      ]
     });
-    var keys = Object.keys(agg).sort().reverse().slice(0, 30);
-    var max = 0;
-    keys.forEach(function (k) { if (agg[k].t > max) max = agg[k].t; });
-    $("daysList").innerHTML = keys.length ? keys.map(function (k) {
-      var a = agg[k];
-      var pct = max ? Math.max(3, Math.round(a.t / max * 100)) : 0;
-      return '<button type="button" class="day-row" data-day="' + k + '" aria-pressed="' + (k === day) + '">' +
-        '<span class="dl"><b>' + esc(fmtShort(k)) + '</b><small class="num">' + nf(a.n) + ' nota &middot; ' + nf(a.q) + ' btl</small></span>' +
-        '<span class="track"><span class="fill" style="display:block;width:' + pct + '%"></span></span>' +
-        '<span class="dv num">' + rp(a.t) + '</span></button>';
-    }).join("") : '<p class="empty">Belum ada riwayat. Simpan pesanan pertama dari tab Kasir.</p>';
-
-    $("storeNote").textContent = !ready ? "Menyiapkan penyimpanan..." :
-      (mode === "db" ? "Riwayat tersimpan di akun dan terlihat di semua perangkat." : "Riwayat tersimpan di perangkat ini saja.");
-    $("csv").hidden = sales.length === 0;
   }
 
-  $("day").addEventListener("change", function (e) {
-    if (e.target.value) { selectedDay = e.target.value; renderHistory(); }
-  });
-  $("today").addEventListener("click", function () {
-    selectedDay = dateKey(Date.now()); renderHistory();
-  });
-  $("daysList").addEventListener("click", function (e) {
-    var b = e.target.closest("button[data-day]");
-    if (!b) return;
-    selectedDay = b.dataset.day; renderHistory();
-    window.scrollTo(0, 0);
-  });
-  $("dayList").addEventListener("click", function (e) {
-    var b = e.target.closest("button[data-id]");
-    if (!b) return;
-    var s = sales.filter(function (x) { return x.id === b.dataset.id; })[0];
-    if (s) showReceipt(s, true);
-  });
-
-  function csvCell(v) {
-    var s = String(v);
-    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  /* ================= layar masuk ================= */
+  const authErr = (m) => { const e = $("aErr"); if (e) { e.textContent = m; e.hidden = !m; } };
+  function authShell(inner) {
+    me0();
+    $("app").hidden = true; $("auth").hidden = false;
+    $("authBox").innerHTML = inner;
   }
-  function csvText() {
-    var rows = [["No Nota", "Tanggal", "Jam", "Yakult Original", "Yakult Mangga", "Yakult Stroberi", "Yakult Light", "Total Botol", "Total (Rp)", "Tunai (Rp)", "Kembalian (Rp)"]];
-    sales.slice().sort(function (a, b) { return a.ts - b.ts; }).forEach(function (s) {
-      var q = {};
-      s.items.forEach(function (i) { q[i.id] = (q[i.id] || 0) + i.qty; });
-      var d = new Date(s.ts);
-      rows.push([invNo(s), s.date, pad(d.getHours()) + ":" + pad(d.getMinutes()),
-        q.original || 0, q.mangga || 0, q.stroberi || 0, q.light || 0, s.qty, s.total, s.cash, s.change]);
-    });
-    return rows.map(function (r) { return r.map(csvCell).join(","); }).join("\r\n");
+  function me0() { document.body.dataset.role = ""; }
+  function showConnect(msg) {
+    authShell("<h1>Kasir Yakult</h1><p class=\"sub\">Sambungkan aplikasi ke server tim Anda. Alamat server diberikan oleh Admin (atau buka tautan undangan dari Admin).</p>" +
+      '<div class="fld"><label for="aUrl">Alamat server (berakhiran /exec)</label><input id="aUrl" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(cfg.url) + '"></div>' +
+      '<p class="merr" id="aErr"' + (msg ? "" : " hidden") + ">" + esc(msg || "") + '</p><button class="btn primary big" type="button" data-act="auth-connect">Sambungkan</button>');
   }
-  function saveFile(name, data) {
-    if (!dl) {
-      try {
-        var type = /\.csv$/.test(name) ? "text/csv;charset=utf-8" : "text/plain;charset=utf-8";
-        var blob = new Blob([/\.csv$/.test(name) ? "\ufeff" + data : data], { type: type });
-        var a = document.createElement("a");
-        a.href = URL.createObjectURL(blob); a.download = name;
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
-        toast("File diunduh");
-      } catch (e) { toast("Tidak bisa mengunduh. Gunakan Salin nota."); }
+  async function connectUrl(u) {
+    u = String(u || "").trim();
+    if (!validUrl(u)) { showConnect("Alamat tidak sesuai. Harus diawali https://script.google.com/macros/s/ dan diakhiri /exec."); return; }
+    if (u !== cfg.url) { cfg.url = u; cfg.sess = null; wipeData(); persist(); }
+    await startFromStatus("Memeriksa server…");
+  }
+  async function startFromStatus(busy, note) {
+    authShell("<h1>Kasir Yakult</h1><p class=\"sub\">" + esc(busy || "Memuat…") + "</p>");
+    const r = await rawCall({ a: "status" });
+    if (!r.ok) { showOffline(); return; }
+    if (r.v !== 5) { showConnect("Skrip server di Google belum versi terbaru. Tempel Code.gs yang baru lalu Deploy versi baru."); return; }
+    if (!r.init) { showAuth("setup"); return; }
+    D.statusUsers = r.users || []; D.shopName = r.shop || ""; persist();
+    showAuth("login", note);
+  }
+  function showOffline() {
+    authShell("<h1>Kasir Yakult</h1><p class=\"sub\">" + esc(NETMSG) + "</p>" +
+      '<button class="btn primary big" type="button" data-act="auth-retry">Coba lagi</button><button class="linkbtn" type="button" data-act="auth-server">Ganti alamat server</button>');
+  }
+  function showAuth(mode, note) {
+    if (mode === "setup") {
+      authShell("<h1>Kasir Yakult</h1><p class=\"sub\">Server ini masih kosong. Buat akun Admin pertama. Admin bisa menambah sales lain.</p>" +
+        '<div class="fld"><label for="aShop">Nama usaha (tampil di nota)</label><input id="aShop" type="text" maxlength="40" value="Penjualan Yakult" autocomplete="off"></div>' +
+        '<div class="fld"><label for="aName">Nama Admin</label><input id="aName" type="text" maxlength="30" autocomplete="off"></div>' +
+        '<div class="fld"><label for="aPin">PIN (4 sampai 6 angka)</label><input id="aPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password"></div>' +
+        '<div class="fld"><label for="aPin2">Ulangi PIN</label><input id="aPin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password"></div>' +
+        '<p class="merr" id="aErr" hidden></p><button class="btn primary big" type="button" data-act="auth-setup">Buat akun Admin</button><button class="linkbtn" type="button" data-act="auth-server">Ganti alamat server</button>');
       return;
     }
-    dl.save({ filename: name, data: data }).then(function () {
-      toast("File disimpan");
-    }).catch(function (e) {
-      if (e && e.code === "declined") return;
-      toast("Tidak bisa mengunduh di tampilan ini.");
+    const list = D.statusUsers || [];
+    authShell("<h1>Kasir Yakult</h1><p class=\"sub\">" + esc(D.shopName || "Masuk") + "</p>" + (note ? '<p class="note">' + esc(note) + "</p>" : "") +
+      '<div class="fld"><label for="aUser">Masuk sebagai</label><select id="aUser">' + list.map((a) => '<option value="' + esc(a.id) + '"' + (a.id === cfg.last ? " selected" : "") + ">" + esc(a.name) + "</option>").join("") + "</select></div>" +
+      '<div class="fld"><label for="aPinL">PIN</label><input id="aPinL" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"></div>' +
+      '<p class="merr" id="aErr" hidden></p><button class="btn primary big" type="button" data-act="auth-login">Masuk</button>' +
+      '<button class="linkbtn" type="button" data-act="auth-forgot">Lupa PIN Admin?</button><button class="linkbtn" type="button" data-act="auth-server">Ganti alamat server</button>');
+  }
+  function showLock() {
+    const u = me();
+    authShell("<h1>Kasir Yakult</h1><p class=\"sub\">Halo, " + esc(u.name) + ". Masukkan PIN untuk membuka.</p>" +
+      '<div class="fld"><label for="aPinK">PIN</label><input id="aPinK" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"></div>' +
+      '<p class="merr" id="aErr" hidden></p><button class="btn primary big" type="button" data-act="auth-unlock">Buka</button><button class="linkbtn" type="button" data-act="auth-switch">Bukan Anda? Pakai akun lain</button>');
+  }
+  let busyAuth = false;
+  async function doSetup() {
+    if (busyAuth) return;
+    const shop = val("aShop").trim() || DEFAULT_SHOP, name = val("aName").trim(), p1 = val("aPin"), p2 = val("aPin2");
+    if (!name) return authErr("Isi nama Admin.");
+    if (!validPin(p1)) return authErr("PIN harus 4 sampai 6 angka.");
+    if (p1 !== p2) return authErr("Ulangi PIN tidak sama.");
+    busyAuth = true; authErr("Membuat akun…");
+    const r = await rawCall({ a: "setup", name, pin: p1, shop });
+    busyAuth = false;
+    if (!r.ok) { authErr(errText(r)); if (r.err === "sudah") startFromStatus(); return; }
+    cfg.sess = { token: r.token, user: r.user, verifier: r.verifier }; cfg.last = r.user.id;
+    D.settings = { shop: r.settings.shop, low: r.settings.low, prices: r.settings.prices || {} };
+    persist();
+    codeModal(r.recovery, () => enterApp());
+  }
+  async function doLogin() {
+    if (busyAuth) return;
+    const uid = val("aUser"), pin = val("aPinL");
+    if (!uid || !validPin(pin)) return authErr("Masukkan PIN 4 sampai 6 angka.");
+    busyAuth = true; authErr("");
+    const r = await rawCall({ a: "login", uid, pin });
+    busyAuth = false;
+    if (!r.ok) { authErr(errText(r)); if (r.err === "pengguna") startFromStatus(); return; }
+    cfg.sess = { token: r.token, user: r.user, verifier: r.verifier }; cfg.last = r.user.id;
+    if (r.settings) D.settings = { shop: r.settings.shop, low: r.settings.low, prices: r.settings.prices || {} };
+    persist();
+    enterApp();
+  }
+  async function doUnlock() {
+    const pin = val("aPinK"), v = cfg.sess && cfg.sess.verifier;
+    if (!validPin(pin)) return authErr("Masukkan PIN 4 sampai 6 angka.");
+    if (!v || (await hashPin(pin, v.salt)) !== v.hash) return authErr("PIN salah. Jika PIN baru saja diganti Admin, pilih Pakai akun lain.");
+    enterApp();
+  }
+  function forgotDialog() {
+    openModal({
+      title: "Lupa PIN Admin",
+      body: '<p class="note">Masukkan kode pemulihan yang dicatat saat akun Admin dibuat, lalu tentukan PIN baru. Lupa PIN sales? Minta Admin mereset di menu Akun.</p>' +
+        '<div class="fld"><label for="fCode">Kode pemulihan</label><input id="fCode" type="text" autocapitalize="characters" autocomplete="off" placeholder="XXXX-XXXX"></div>' +
+        '<div class="fld"><label for="fPin">PIN baru (4 sampai 6 angka)</label><input id="fPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password"></div>' +
+        '<div class="fld"><label for="fPin2">Ulangi PIN baru</label><input id="fPin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password"></div>',
+      actions: [{ label: "Batal" }, { label: "Ganti PIN", cls: "primary", fn: async () => {
+        if (!validPin(val("fPin"))) { modalErr("PIN baru harus 4 sampai 6 angka."); return false; }
+        if (val("fPin") !== val("fPin2")) { modalErr("Ulangi PIN tidak sama."); return false; }
+        const r = await rawCall({ a: "forgot", code: val("fCode"), pin: val("fPin") });
+        if (!r.ok) { modalErr(errText(r)); return false; }
+        toast("PIN Admin diganti. Silakan masuk.");
+      } }]
     });
   }
-  $("csv").addEventListener("click", function () {
-    saveFile("rekap-penjualan-yakult.csv", csvText());
-  });
 
-  /* ---------- nota ---------- */
-  function receiptHTML(s) {
-    var shop = s.shop || "Penjualan Yakult";
-    var d = new Date(s.ts);
-    var items = s.items.map(function (i) {
-      return '<div><div class="r-name">' + esc(i.name) + '</div><div class="r-line num"><span>' + nf(i.qty) + ' x ' + nf(i.price) +
-        '</span><span>' + nf(i.qty * i.price) + '</span></div></div>';
+  function enterApp() {
+    const u = me();
+    cfg.last = u.id; persist();
+    document.body.dataset.role = u.role;
+    stkSel = u.role === "owner" ? "GUDANG" : u.id; whoFilter = "";
+    $("auth").hidden = true; $("app").hidden = false;
+    resetOrder();
+    switchTab("kasir");
+    syncNow();
+    startTimer();
+  }
+  let timer = null;
+  function startTimer() { clearInterval(timer); timer = setInterval(() => { if (!document.hidden && cfg.sess && !$("app").hidden) syncNow(); }, SYNC_EVERY); }
+  function logout(keepNote) {
+    closeModal(); closeReceipt();
+    cfg.sess = null; persist(); clearInterval(timer);
+    startFromStatus("Memuat…", keepNote);
+  }
+  authLostHandler = () => {
+    if (!cfg.sess) return;
+    cfg.sess = null; persist(); clearInterval(timer); closeModal(); closeReceipt();
+    startFromStatus("Memuat…", "Sesi berakhir atau akun dinonaktifkan. Masuk lagi. Data yang belum terkirim tetap tersimpan di HP ini.");
+  };
+
+  /* ================= tab ================= */
+  function switchTab(t) {
+    curTab = t;
+    TABS.forEach((n) => { $("tab-" + n).setAttribute("aria-selected", String(n === t)); $("view-" + n).hidden = n !== t; });
+    $("bar").hidden = t !== "kasir";
+    renderCurrent();
+    window.scrollTo(0, 0);
+  }
+  function renderCurrent() {
+    if (!cfg.sess) return;
+    renderHeader(); renderWarn(); renderChip();
+    if (curTab === "kasir") renderKasir();
+    else if (curTab === "riwayat") renderHistory();
+    else if (curTab === "stok") renderStok();
+    else if (curTab === "pelanggan") renderPelanggan();
+    else renderAkun();
+  }
+  function renderHeader() {
+    const u = me();
+    if (!u) return;
+    $("who").textContent = D.settings.shop + " · " + u.name + " (" + roleName(u.role) + ")";
+    const s = stockOf(u.id);
+    $("pip").hidden = !(s.set && PRODUCTS.some((p) => s.rows[p.id].now <= D.settings.low && (s.rows[p.id].bawa > 0)));
+  }
+  function renderWarn() {
+    const w = $("warn");
+    if (!w) return;
+    let html = "";
+    if (storageBad) html = "<span>Penyimpanan HP penuh atau dimatikan. Jangan memakai mode Privat. Data yang belum terkirim bisa hilang.</span>";
+    else if (Math.abs(D.skew || 0) > 5 * 60000) html = "<span>Jam HP ini berbeda sekitar " + Math.round(Math.abs(D.skew) / 60000) + " menit dari server. Aktifkan jam otomatis di Pengaturan HP agar tanggal nota benar.</span>";
+    else if (D.rej.length) html = "<span>" + D.rej.length + " data ditolak server dan tidak tersimpan: " + esc(D.rej.slice(-2).map((x) => x.label).join("; ")) + '.</span><button class="btn" type="button" data-act="rej-clear">Mengerti</button>';
+    w.innerHTML = html; w.hidden = !html;
+  }
+
+  /* ================= stok ================= */
+  function statusOf(now, set) {
+    if (!set) return { cls: "none", text: "Belum diatur" };
+    if (now <= 0) return { cls: "bad", text: now < 0 ? "Minus" : "Habis" };
+    if (now <= D.settings.low) return { cls: "low", text: "Menipis" };
+    return { cls: "ok", text: "Aman" };
+  }
+  function renderStok() {
+    const u = me(), owner = isOwner();
+    if (!owner) stkSel = u.id;
+    if (stkSel !== "GUDANG" && !D.users.some((x) => x.id === stkSel)) stkSel = owner ? "GUDANG" : u.id;
+    if (owner) {
+      const sel = $("stkUser");
+      sel.innerHTML = '<option value="GUDANG">Gudang</option>' + D.users.filter((x) => x.active !== false).map((a) => '<option value="' + esc(a.id) + '">' + esc(a.name) + (a.id === u.id ? " (saya)" : "") + "</option>").join("");
+      sel.value = stkSel;
+    }
+    const gud = stkSel === "GUDANG", s = stockOf(stkSel);
+    $("stkNote").textContent = gud ? "Gudang = barang yang dimiliki usaha dan belum dibawa sales. Catat barang masuk di sini. Saat sales membawa barang, stok gudang berkurang otomatis." : "Stok bawa = barang yang dibawa sales untuk dijual. Berkurang otomatis setiap penjualan disimpan. Tutup hari untuk mencocokkan dengan hitungan di tas.";
+    $("stkBtns").innerHTML = gud ? '<button class="btn primary" type="button" data-act="stk-masuk">Barang masuk gudang</button>' :
+      '<button class="btn primary" type="button" data-act="stk-bawa">Bawa barang</button><button class="btn" type="button" data-act="stk-close">Tutup hari</button><button class="btn" type="button" data-act="stk-kembali">Kembalikan ke gudang</button>';
+    $("stokList").innerHTML = PRODUCTS.map((p) => {
+      const r = s.rows[p.id], used = r.masuk || r.bawa || r.kembali || r.koreksi || r.sold, st = statusOf(r.now, s.set && used);
+      const sub = gud ? "Masuk " + nf(r.masuk) + " · Dibawa sales " + nf(r.bawa) + " · Kembali " + nf(r.kembali) : "Dibawa " + nf(r.bawa) + " · Kembali " + nf(r.kembali) + " · Koreksi " + (r.koreksi > 0 ? "+" : "") + nf(r.koreksi) + " · Terjual " + nf(r.sold);
+      return '<div class="card stk"><div class="stk-head"><span class="dot" style="--c:' + p.color + '"></span><b>' + p.name + ' <span class="desc">' + esc(p.desc) + '</span></b><span class="pill ' + st.cls + '">' + st.text + "</span></div>" +
+        '<div class="stk-big num">' + (s.set && used ? nf(r.now) : "–") + ' <small>pak</small></div><p class="stk-sub num">' + sub + "</p></div>";
     }).join("");
-    return '<div class="r-head"><div class="r-shop">' + esc(shop) + '</div><div class="r-sub">Nota penjualan</div></div>' +
-      '<hr>' +
-      '<div class="r-meta num"><div class="r-line"><span>No</span><span>' + esc(invNo(s)) + '</span></div>' +
-      '<div class="r-line"><span>Tanggal</span><span>' + esc(d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })) + '</span></div>' +
-      '<div class="r-line"><span>Jam</span><span>' + fmtTime(s.ts) + '</span></div></div>' +
-      '<hr><div class="r-items">' + items + '</div><hr>' +
-      '<div class="r-sum num"><div class="r-line r-total"><span>Total (' + nf(s.qty) + ' botol)</span><span>' + rp(s.total) + '</span></div>' +
-      '<div class="r-line"><span>Tunai</span><span>' + rp(s.cash) + '</span></div>' +
-      '<div class="r-line"><span>Kembalian</span><span>' + rp(s.change) + '</span></div></div>' +
-      '<hr><div class="r-thanks">Terima kasih</div>';
+    $("stkSalesBox").hidden = !(owner && gud);
+    if (owner && gud) {
+      const us = D.users.filter((x) => x.active !== false);
+      $("stkSales").innerHTML = us.map((a) => {
+        const x = stockOf(a.id);
+        return '<button type="button" class="lrow" data-act="stk-pick" data-id="' + esc(a.id) + '"><span class="lr-main"><b>' + esc(a.name) + "</b><small>" + (x.set ? "Stok bawa tercatat" : "Belum bawa barang") + '</small></span><span class="lr-side num">' + (x.set ? nf(stockTotal(x)) + " pak" : "–") + "</span></button>";
+      }).join("") || '<p class="empty">Belum ada sales.</p>';
+    }
+    // tutup hari
+    const groups = {};
+    Object.keys(D.stok).forEach((k) => {
+      const e = D.stok[k];
+      if (e.type !== "hitung" || e.void || e.fid !== stkSel) return;
+      const key = dateKey(e.ts);
+      (groups[key] = groups[key] || []).push(e);
+    });
+    const days = Object.keys(groups).sort().reverse().slice(0, 8);
+    $("closeList").innerHTML = days.length ? days.map((d) => {
+      const diffs = groups[d].filter((e) => e.qty !== 0).map((e) => e.code + " " + (e.qty > 0 ? "+" : "") + e.qty);
+      return '<div class="lrow" style="cursor:default"><span class="lr-main"><b>' + esc(fmtShort(d)) + '</b><small class="num">' + (diffs.length ? "Selisih: " + esc(diffs.join(", ")) : "Stok cocok") + "</small></span></div>";
+    }).join("") : '<p class="empty">' + (gud ? "Tutup hari dilakukan per sales." : "Belum ada tutup hari.") + "</p>";
+    // log
+    const lbl = { masuk: "Barang masuk", bawa: "Bawa barang", kembali: "Kembali ke gudang", hitung: "Hitung stok" };
+    const log = Object.keys(D.stok).map((k) => D.stok[k]).filter((e) => !e.void && (gud ? true : e.fid === stkSel)).sort((a, b) => b.ts - a.ts).slice(0, 25);
+    $("stokLog").innerHTML = log.length ? log.map((e) => {
+      const q = e.type === "hitung" ? (e.qty > 0 ? "+" : "") + nf(e.qty) : nf(e.qty);
+      const who = e.type === "masuk" ? "" : " · " + esc(e.fname || userName(e.fid));
+      return '<div class="lrow" style="cursor:default"><span class="lr-main"><b>' + esc(e.code) + " · " + lbl[e.type] + '</b><small class="num">' + esc(fmtStamp(e.ts)) + who + (e.byName ? " · oleh " + esc(e.byName) : "") + (e.note ? " · " + esc(e.note) : "") + (pendingOf(e.id) ? " · belum terkirim" : "") + '</small></span><span class="lr-side num">' + q + (isOwner() ? '<small><button type="button" class="linkbtn" data-act="stk-void" data-id="' + esc(e.id) + '">Batalkan</button></small>' : "") + "</span></div>";
+    }).join("") : '<p class="empty">Belum ada catatan stok.</p>';
+  }
+  function addStok(type, fid, code, q, note, extra) {
+    const u = me(), ts = nextTs();
+    const rec = Object.assign({ id: newId("t"), ts, type, fid, fname: userName(fid), code, qty: q, note: note || "", by: u.id, byName: u.name, exp: null, phys: null, void: 0 }, extra || {});
+    D.stok[rec.id] = rec;
+    D.queue.push({ k: newId("q"), t: "stok", d: { id: rec.id, ts, type, fid, code, qty: q, note: rec.note, exp: rec.exp, phys: rec.phys }, u: u.id, tries: 0 });
+    return rec;
+  }
+  function batchDialog(kind) {
+    const gud = kind === "masuk", fid = gud ? "GUDANG" : stkSel;
+    const T = {
+      masuk: { title: "Barang masuk gudang", hint: "Isi jumlah pak yang baru masuk ke gudang. Kosongkan kode yang tidak masuk.", btn: "Simpan" },
+      bawa: { title: "Bawa barang · " + userName(fid), hint: "Isi jumlah pak yang diambil dari gudang untuk dibawa jualan. Kosongkan kode yang tidak dibawa.", btn: "Simpan" },
+      kembali: { title: "Kembalikan ke gudang · " + userName(fid), hint: "Isi jumlah pak yang dikembalikan ke gudang. Kosongkan kode yang tidak dikembalikan.", btn: "Simpan" }
+    }[kind];
+    const s = stockOf(fid);
+    openModal({
+      title: T.title,
+      body: '<p class="note">' + esc(T.hint) + '</p><div class="ld-grid">' + PRODUCTS.map((p) => '<label for="ld-' + p.id + '"><b>' + p.name + '</b> <span class="desc">' + esc(p.desc) + '</span>' + (kind === "kembali" ? '<span class="blk">di tas ' + nf(s.rows[p.id].now) + "</span>" : "") + '</label><input id="ld-' + p.id + '" type="number" inputmode="numeric" min="0" max="999999" placeholder="0">').join("") + '</div><div class="fld"><label for="ldNote">Catatan (boleh kosong)</label><input id="ldNote" type="text" maxlength="60" autocomplete="off"></div>',
+      actions: [{ label: "Batal" }, { label: T.btn, cls: "primary", fn: () => {
+        const add = [];
+        for (const p of PRODUCTS) {
+          const raw = val("ld-" + p.id).trim();
+          if (raw === "") continue;
+          const n = Number(raw);
+          if (!Number.isInteger(n) || n < 0 || n > 999999) { modalErr("Jumlah " + p.name + " harus angka bulat 0 atau lebih."); return false; }
+          if (n > 0) add.push([p.id, n]);
+        }
+        if (!add.length) { modalErr("Isi minimal satu kode dengan jumlah lebih dari 0."); return false; }
+        add.forEach((a) => addStok(kind, fid, a[0], a[1], val("ldNote").trim()));
+        persist(); renderCurrent(); toast("Stok disimpan"); syncSoon();
+      } }]
+    });
+  }
+  function closeDayDialog() {
+    const fid = stkSel, s = stockOf(fid);
+    if (!s.set) { toast("Catat barang yang dibawa dulu sebelum tutup hari."); return; }
+    const today = dateKey(Date.now());
+    const ds = notaList().filter((n) => n.uid === fid && notaDate(n) === today);
+    const omzet = ds.reduce((a, n) => a + n.total, 0);
+    openModal({
+      title: "Tutup hari · " + userName(fid),
+      body: '<p class="note num">Hari ini: ' + nf(ds.length) + " nota, " + rp(omzet) + ". Hitung barang yang masih ada di tas, lalu isi di bawah.</p><div class=\"ld-grid\">" +
+        PRODUCTS.map((p) => '<label for="cl-' + p.id + '"><b>' + p.name + '</b> <span class="desc">' + esc(p.desc) + '</span><span class="blk">seharusnya ' + nf(s.rows[p.id].now) + ' pak</span></label><input id="cl-' + p.id + '" type="number" inputmode="numeric" min="0" max="999999" value="' + Math.max(0, s.rows[p.id].now) + '">').join("") +
+        '</div><label class="check" for="clBack"><input type="checkbox" id="clBack"><span>Kembalikan semua sisa ke gudang (kosongkan jika sisa dibawa lagi besok)</span></label>',
+      actions: [{ label: "Batal" }, { label: "Tutup hari", cls: "primary", fn: () => {
+        const rows = [];
+        for (const p of PRODUCTS) {
+          const raw = val("cl-" + p.id).trim(), n = Number(raw);
+          if (raw === "" || !Number.isInteger(n) || n < 0 || n > 999999) { modalErr("Jumlah " + p.name + " harus angka bulat 0 atau lebih."); return false; }
+          rows.push({ p, exp: s.rows[p.id].now, phys: n });
+        }
+        const back = $("clBack").checked;
+        rows.forEach((r) => { if (r.exp !== 0 || r.phys !== 0) addStok("hitung", fid, r.p.id, r.phys - r.exp, "Tutup hari", { exp: r.exp, phys: r.phys }); });
+        if (back) rows.forEach((r) => { if (r.phys > 0) addStok("kembali", fid, r.p.id, r.phys, "Sisa tutup hari"); });
+        persist(); renderCurrent(); toast("Hari ditutup"); syncSoon();
+      } }]
+    });
+  }
+
+  /* ================= toko / pelanggan ================= */
+  function custStats(id) {
+    let n = 0, botol = 0, total = 0, last = 0;
+    notaList().forEach((x) => { if (x.cust && x.cust.id === id) { n++; botol += x.qty; total += x.total; if (x.ts > last) last = x.ts; } });
+    return { n, botol, total, last };
+  }
+  function renderPelanggan() {
+    const q = val("cSearch").trim().toLowerCase(), all = custList();
+    const list = all.filter((c) => !q || (c.name + " " + c.contact + " " + c.phone + " " + c.address + " " + c.area).toLowerCase().indexOf(q) >= 0).sort((a, b) => a.name.localeCompare(b.name, "id"));
+    const stats = {};
+    notaList().forEach((x) => { if (x.cust) { const s = stats[x.cust.id] || (stats[x.cust.id] = { n: 0, total: 0, last: 0 }); s.n++; s.total += x.total; if (x.ts > s.last) s.last = x.ts; } });
+    $("custCount").textContent = nf(all.length) + " toko";
+    $("custList").innerHTML = list.length ? list.slice(0, 200).map((c) => {
+      const s = stats[c.id] || { n: 0, total: 0, last: 0 };
+      const sub = [c.contact, c.phone].filter(Boolean).join(" · ");
+      return '<button type="button" class="lrow" data-act="cust-edit" data-id="' + esc(c.id) + '"><span class="lr-main"><b>' + esc(c.name) + "</b><small>" + esc(sub || "Belum ada kontak") + (s.last ? " · order terakhir " + relText(relDays(dateKey(s.last))).toLowerCase() : "") + '</small></span><span class="lr-side num">' + rp(s.total) + "<small>" + nf(s.n) + " nota</small></span></button>";
+    }).join("") + (list.length > 200 ? '<p class="empty">Menampilkan 200 dari ' + nf(list.length) + ". Ketik untuk mempersempit.</p>" : "") : '<p class="empty">' + (all.length ? "Tidak ada toko yang cocok." : "Belum ada toko. Tekan Tambah toko, atau ketik nama toko langsung dari tab Kasir.") + "</p>";
+  }
+  function saveCust(rec) {
+    const full = Object.assign({ id: "", name: "", contact: "", phone: "", address: "", area: "", note: "", by: me().name, ed: Date.now(), del: 0 }, rec);
+    full.ed = Date.now();
+    D.pel[full.id] = full;
+    D.queue = D.queue.filter((o) => !(o.t === "cust" && o.d.id === full.id));
+    D.queue.push({ k: newId("q"), t: "cust", d: { id: full.id, name: full.name, contact: full.contact, phone: full.phone, address: full.address, area: full.area, note: full.note, ed: full.ed }, u: me().id, tries: 0 });
+    persist(); syncSoon();
+    return full;
+  }
+  const nameExists = (name, exceptId) => custList().some((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== exceptId);
+  function renderCustInfo() {
+    const c = selCust ? D.pel[selCust] : null;
+    if (selCust && (!c || c.del)) selCust = "";
+    const cc = selCust ? D.pel[selCust] : null;
+    $("pickBtn").classList.toggle("empty", !cc);
+    $("pickLabel").textContent = cc ? cc.name : "Pilih toko pelanggan…";
+    $("pickClear").hidden = !cc;
+    const box = $("custInfo");
+    if (!cc) { box.innerHTML = ""; return; }
+    const list = custNotas(cc.id);
+    const info = [cc.phone, cc.address, cc.note].filter(Boolean).join(" · ");
+    const rows = list.slice(0, 3).map((s) => {
+      const d = relDays(notaDate(s));
+      const tag = d >= 5 && d <= 9 ? '<span class="tag">Minggu lalu</span>' : "";
+      const sum = s.items.map((i) => esc(i.i) + " ×" + nf(i.q)).join(", ");
+      return '<div class="hrow"><div class="hmain"><span><b>' + esc(relText(d)) + "</b>" + tag + "</span><small>" + esc(fmtShort(notaDate(s))) + (s.by ? " · " + esc(s.by) : "") + " · " + sum + '</small></div><div class="hside"><b class="num">' + rp(s.total) + '</b><button type="button" class="btn" data-act="repeat" data-id="' + esc(s.id) + '">Ulangi</button></div></div>';
+    }).join("");
+    const week = list.filter((s) => relDays(notaDate(s)) <= 6);
+    const wt = week.reduce((a, s) => a + s.total, 0);
+    box.innerHTML = (info ? '<p class="cinfo">' + esc(info) + "</p>" : "") +
+      '<div class="hist"><h3>Order sebelumnya</h3>' + (rows || '<p class="note">Belum pernah order.</p>') +
+      (list.length ? '<p class="note num">7 hari terakhir: ' + nf(week.length) + " nota · " + rp(wt) + "</p>" : "") + "</div>";
+  }
+  function repeatOrder(id) {
+    const s = D.nota[id];
+    if (!s) return;
+    PRODUCTS.forEach((p) => { qty[p.id] = 0; });
+    s.items.forEach((i) => { if (PBY[i.i]) qty[i.i] = Math.min(MAX, i.q); });
+    $("cash").value = "";
+    renderKasir();
+    toast("Order disalin dengan harga sekarang. Cek jumlahnya lalu simpan.");
+  }
+  function pickDialog() {
+    openModal({
+      title: "Pilih toko",
+      body: '<div class="fld"><label for="pkQ">Cari atau ketik nama toko</label><input id="pkQ" type="search" autocomplete="off" placeholder="Contoh: Warung Bu Ani"></div><div class="card" id="pkList"></div>',
+      onOpen: () => { renderPick(); $("pkQ").addEventListener("input", renderPick); $("pkList").addEventListener("click", pickClick); },
+      actions: [{ label: "Tutup" }]
+    });
+  }
+  function renderPick() {
+    const q = val("pkQ").trim(), ql = q.toLowerCase();
+    const last = {};
+    notaList().forEach((s) => { if (s.cust && !last[s.cust.id]) last[s.cust.id] = s; });
+    const list = custList().filter((c) => !ql || (c.name + " " + c.contact + " " + c.phone + " " + c.address + " " + c.area).toLowerCase().indexOf(ql) >= 0);
+    list.sort((a, b) => { const la = last[a.id] ? last[a.id].ts : 0, lb = last[b.id] ? last[b.id].ts : 0; return lb - la || a.name.localeCompare(b.name, "id"); });
+    const exact = custList().some((c) => c.name.toLowerCase() === ql);
+    let html = "";
+    if (q && !exact) html += '<button type="button" class="lrow" data-pk-new="1"><span class="lr-main"><b>+ Tambah toko “' + esc(q) + '”</b><small>Simpan sebagai toko baru dan langsung pilih</small></span></button>';
+    if (!q) html += '<button type="button" class="lrow" data-pk=""><span class="lr-main"><b>Tanpa toko</b><small>Penjualan umum</small></span></button>';
+    html += list.slice(0, 60).map((c) => {
+      const l = last[c.id];
+      return '<button type="button" class="lrow" data-pk="' + esc(c.id) + '"><span class="lr-main"><b>' + esc(c.name) + "</b><small>" + (l ? "Order terakhir " + esc(relText(relDays(notaDate(l))).toLowerCase()) + " · " + rp(l.total) : "Belum pernah order") + "</small></span></button>";
+    }).join("");
+    if (list.length > 60) html += '<p class="empty">Menampilkan 60 dari ' + nf(list.length) + ". Ketik untuk mempersempit.</p>";
+    if (!html) html = '<p class="empty">Belum ada toko. Ketik nama toko di atas lalu tekan Tambah.</p>';
+    $("pkList").innerHTML = html;
+  }
+  function pickClick(e) {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.hasAttribute("data-pk-new")) {
+      const name = val("pkQ").trim().slice(0, 60);
+      if (!name) return;
+      if (nameExists(name, "")) { toast("Nama toko itu sudah ada. Pilih dari daftar."); return; }
+      const rec = saveCust({ id: newId("c"), name });
+      selCust = rec.id; closeModal(); renderKasir(); toast("Toko ditambahkan: " + name);
+    } else if (b.hasAttribute("data-pk")) {
+      selCust = b.getAttribute("data-pk"); closeModal(); renderKasir();
+    }
+  }
+  function customerDialog(id) {
+    const c = id ? D.pel[id] : null;
+    const hist = c ? custNotas(c.id).slice(0, 5) : [];
+    const st = c ? custStats(c.id) : null;
+    openModal({
+      title: c ? "Data toko" : "Toko baru",
+      body: '<div class="fld"><label for="cfName">Nama toko / pelanggan</label><input id="cfName" type="text" maxlength="60" autocomplete="off" value="' + esc(c ? c.name : "") + '"></div>' +
+        '<div class="fld"><label for="cfContact">Nama kontak</label><input id="cfContact" type="text" maxlength="40" autocomplete="off" value="' + esc(c ? c.contact : "") + '"></div>' +
+        '<div class="fld"><label for="cfPhone">Telepon</label><input id="cfPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="' + esc(c ? c.phone : "") + '"></div>' +
+        '<div class="fld"><label for="cfArea">Area / rute</label><input id="cfArea" type="text" maxlength="40" autocomplete="off" value="' + esc(c ? c.area : "") + '"></div>' +
+        '<div class="fld"><label for="cfAddr">Alamat</label><textarea id="cfAddr" maxlength="200">' + esc(c ? c.address : "") + '</textarea></div>' +
+        '<div class="fld"><label for="cfNote">Catatan</label><input id="cfNote" type="text" maxlength="100" autocomplete="off" value="' + esc(c ? c.note : "") + '"></div>' +
+        (c ? '<p class="note num">Total belanja ' + rp(st.total) + " · " + nf(st.n) + " nota</p>" + (hist.length ? '<div class="card" id="cfHist">' + hist.map((s) => '<button type="button" class="lrow" data-hid="' + esc(s.id) + '"><span class="lr-main"><b>' + esc(s.inv) + '</b><small class="num">' + esc(fmtStamp(s.ts)) + (s.by ? " · " + esc(s.by) : "") + " · " + nf(s.qty) + ' botol</small></span><span class="lr-side num">' + rp(s.total) + "</span></button>").join("") + "</div>" : "") : ""),
+      onOpen: (box) => {
+        box.querySelectorAll("[data-hid]").forEach((b) => b.addEventListener("click", () => {
+          const s = D.nota[b.dataset.hid];
+          if (s) { closeModal(); showReceipt(s, true); }
+        }));
+      },
+      actions: [{ label: "Batal" },
+        ...(c && isOwner() ? [{ label: "Hapus", cls: "danger", fn: () => {
+          confirmModal("Hapus toko?", "Data " + c.name + " dihapus dari daftar. Nota lama tetap tersimpan dengan nama toko tersebut.", "Hapus", () => {
+            c.del = 1; D.queue = D.queue.filter((o) => !(o.t === "cust" && o.d.id === c.id));
+            D.queue.push({ k: newId("q"), t: "cust_del", d: { id: c.id }, u: me().id, tries: 0 });
+            if (selCust === c.id) selCust = "";
+            persist(); renderCurrent(); toast("Toko dihapus"); syncSoon();
+          }, true);
+          return false;
+        } }] : []),
+        ...(c ? [{ label: "Buat order", fn: () => { selCust = c.id; switchTab("kasir"); } }] : []),
+        { label: "Simpan", cls: "primary", fn: () => {
+          const name = val("cfName").trim();
+          if (!name) { modalErr("Isi nama toko atau pelanggan."); return false; }
+          if (nameExists(name, c ? c.id : "")) { modalErr("Nama toko itu sudah ada."); return false; }
+          saveCust({ id: c ? c.id : newId("c"), name, contact: val("cfContact").trim(), phone: val("cfPhone").trim(), address: val("cfAddr").trim(), area: val("cfArea").trim(), note: val("cfNote").trim(), by: c ? c.by : me().name });
+          renderCurrent(); toast("Toko disimpan");
+        } }]
+    });
+  }
+
+  /* ================= kasir ================= */
+  const itemsEl = $("items");
+  PRODUCTS.forEach((p) => {
+    const row = document.createElement("div");
+    row.className = "item";
+    row.innerHTML = '<div class="info"><div class="name"><span class="dot" style="--c:' + p.color + '"></span>' + p.name + '</div><div class="price num" id="p-' + p.id + '"></div></div>' +
+      '<div class="stepper"><button type="button" data-act="minus" data-id="' + p.id + '" aria-label="Kurangi ' + p.name + '">&minus;</button>' +
+      '<input id="q-' + p.id + '" class="num" type="number" inputmode="numeric" min="0" max="' + MAX + '" value="0" aria-label="Jumlah ' + p.name + '">' +
+      '<button type="button" class="plus" data-act="plus" data-id="' + p.id + '" aria-label="Tambah ' + p.name + '">+</button></div><div class="sum num" id="s-' + p.id + '"></div>';
+    itemsEl.appendChild(row);
+  });
+  const quickEl = $("quick");
+  (function () {
+    const ex = document.createElement("button");
+    ex.type = "button"; ex.textContent = "Uang pas"; ex.dataset.act = "cash-quick"; ex.dataset.cash = "exact";
+    quickEl.appendChild(ex);
+    QUICK.forEach((v) => { const b = document.createElement("button"); b.type = "button"; b.textContent = nf(v); b.dataset.act = "cash-quick"; b.dataset.cash = String(v); quickEl.appendChild(b); });
+  })();
+
+  function totals() { let q = 0, t = 0, b = 0; PRODUCTS.forEach((p) => { q += qty[p.id]; b += qty[p.id] * p.isi; t += qty[p.id] * priceOf(p); }); return { q, t, b }; }
+  function cashValue() { const raw = val("cash").replace(/\D/g, ""); return raw ? parseInt(raw, 10) : 0; }
+
+  function renderKasir() {
+    const u = me();
+    if (!u) return;
+    renderCustInfo();
+    const s = stockOf(u.id);
+    PRODUCTS.forEach((p) => {
+      const n = qty[p.id], r = s.rows[p.id], input = $("q-" + p.id);
+      if (document.activeElement !== input) input.value = n;
+      document.querySelector('[data-act="minus"][data-id="' + p.id + '"]').disabled = n === 0;
+      let stk = "";
+      if (s.set && (r.bawa || r.now)) stk = ' · <span class="stk-tag ' + (r.now <= 0 ? "bad" : r.now <= D.settings.low ? "low" : "") + '">Sisa ' + nf(r.now) + "</span>";
+      $("p-" + p.id).innerHTML = esc(p.desc) + "<br>" + rp(priceOf(p)) + " / pak" + stk;
+      let sum = n > 0 ? n + " &times; " + rp(priceOf(p)) + " = <strong>" + rp(n * priceOf(p)) + "</strong> <span>(" + nf(n * p.isi) + " botol)</span>" : "";
+      if (n > 0 && s.set && n > r.now) sum += ' <span class="over">Melebihi stok (sisa ' + nf(r.now) + ")</span>";
+      $("s-" + p.id).innerHTML = sum;
+    });
+    const tt = totals();
+    $("totalQty").textContent = nf(tt.q) + " pak · " + nf(tt.b);
+    $("totalPrice").textContent = rp(tt.t);
+    const cash = cashValue(), box = $("change");
+    box.className = "change";
+    if (cash === 0) { $("changeVal").textContent = "Rp 0"; box.querySelector(".label").textContent = "Kembalian"; }
+    else if (cash >= tt.t) { $("changeVal").textContent = rp(cash - tt.t); box.querySelector(".label").textContent = "Kembalian"; box.classList.add("ok"); }
+    else { $("changeVal").textContent = rp(tt.t - cash); box.querySelector(".label").textContent = "Uang kurang"; box.classList.add("short"); }
+    $("save").disabled = !(!saving && tt.q > 0 && (cash === 0 || cash >= tt.t));
+  }
+  function setQty(id, n) { n = parseInt(n, 10); if (isNaN(n) || n < 0) n = 0; if (n > MAX) n = MAX; qty[id] = n; renderKasir(); }
+  function resetOrder() { PRODUCTS.forEach((p) => { qty[p.id] = 0; }); $("cash").value = ""; selCust = ""; if (cfg.sess) renderKasir(); }
+
+  function doSave() {
+    if (saving) return;
+    const u = me(), tt = totals();
+    if (!tt.q || !u) return;
+    const cash = cashValue(), paid = cash > 0 ? cash : tt.t;
+    if (paid < tt.t) return;
+    const now = Date.now(), items = [];
+    PRODUCTS.forEach((p) => { if (qty[p.id] > 0) items.push({ i: p.id, q: qty[p.id], p: priceOf(p) }); });
+    const c = selCust ? D.pel[selCust] : null;
+    const cust = c ? { id: c.id, name: c.name, address: c.address || "", phone: c.phone || "" } : null;
+    const day = dateKey(now);
+    let no = 0;
+    notaList().forEach((n) => { if (n.uid === u.id && notaDate(n) === day && n.no > no) no = n.no; });
+    D.queue.forEach((o) => { if (o.t === "sale" && o.u === u.id && dateKey(o.d.ts) === day && o.d.no > no) no = o.d.no; });
+    no += 1;
+    const d0 = new Date(now);
+    const inv = (u.kode || "X") + String(d0.getFullYear()).slice(2) + pad(d0.getMonth() + 1) + pad(d0.getDate()) + "-" + pad(no, 3);
+    const id = "s" + now.toString(36) + rnd() + rnd();
+    const d = { id, ts: now, no, inv, items, cash: paid, cust, shop: D.settings.shop };
+    const sale = { id, inv, ts: now, no, uid: u.id, by: u.name, cust, items, qty: tt.b, total: tt.t, cash: paid, change: paid - tt.t, shop: D.settings.shop, del: 0 };
+    D.nota[id] = sale; ver++;
+    D.queue.push({ k: newId("q"), t: "sale", d, u: u.id, tries: 0 });
+    if (!persist()) toast("Penyimpanan HP bermasalah. Segera sinkronkan.");
+    resetOrder(); renderHeader(); showReceipt(sale, false); toast("Penjualan tersimpan"); syncSoon();
+  }
+
+  /* ================= rekap ================= */
+  function visibleSales() {
+    const u = me();
+    if (!u) return [];
+    if (u.role === "owner") return whoFilter ? notaList().filter((s) => s.uid === whoFilter) : notaList();
+    return notaList().filter((s) => s.uid === u.id);
+  }
+  function periodRange(day, p) {
+    const d = keyDate(day);
+    if (p === "minggu") {
+      const off = (d.getDay() + 6) % 7;
+      const a = new Date(d.getFullYear(), d.getMonth(), d.getDate() - off), b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 6);
+      const f = (x) => x.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+      return { from: dateKey(a), to: dateKey(b), label: "minggu " + f(a) + " – " + f(b) };
+    }
+    if (p === "bulan") {
+      const a = new Date(d.getFullYear(), d.getMonth(), 1), b = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      return { from: dateKey(a), to: dateKey(b), label: d.toLocaleDateString("id-ID", { month: "long", year: "numeric" }) };
+    }
+    return { from: day, to: day, label: fmtLong(day) };
+  }
+  function periodSales() {
+    const r = periodRange(selectedDay, period);
+    return { r, ds: visibleSales().filter((s) => { const k = notaDate(s); return k >= r.from && k <= r.to; }) };
+  }
+  function renderHistory() {
+    const u = me(), owner = isOwner();
+    const vs = visibleSales();
+    const { r, ds } = periodSales();
+    $("day").value = selectedDay;
+    document.querySelectorAll("#seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.p === period)));
+    if (owner) {
+      const sel = $("whoSel");
+      sel.innerHTML = '<option value="">Semua sales</option>' + D.users.map((a) => '<option value="' + esc(a.id) + '">' + esc(a.name) + "</option>").join("");
+      sel.value = whoFilter;
+    }
+    let omzet = 0, botol = 0, pak = 0;
+    ds.forEach((s) => { omzet += s.total; botol += s.qty; s.items.forEach((i) => { pak += i.q; }); });
+    $("summary").innerHTML = '<div class="omzet"><small>Omzet ' + esc(r.label) + '</small><strong class="num">' + rp(omzet) + '</strong></div><div class="stats"><div><b class="num">' + nf(ds.length) + "</b><span>nota</span></div><div><b class=\"num\">" + nf(pak) + "</b><span>pak</span></div>" + '<div><b class="num">' + nf(botol) + "</b><span>botol terjual</span></div></div>";
+
+    const rows = PRODUCTS.map((p) => ({ id: p.id, name: p.name, desc: p.desc, color: p.color, q: 0, t: 0 }));
+    const idx = {}; rows.forEach((x) => { idx[x.id] = x; });
+    ds.forEach((s) => s.items.forEach((i) => { const x = idx[i.i]; if (x) { x.q += i.q; x.t += i.q * i.p; } }));
+    $("breakdown").innerHTML = rows.map((x) => '<div class="brow"><span class="dot" style="--c:' + x.color + '"></span><span class="bn">' + esc(x.name) + ' <span class="desc">' + esc(x.desc) + '</span></span><span class="bq num">' + nf(x.q) + ' pak</span><span class="bt num">' + rp(x.t) + "</span></div>").join("");
+
+    const by = {};
+    ds.forEach((s) => { const k = s.by || "-"; const a = by[k] || (by[k] = { n: 0, b: 0, t: 0 }); a.n++; a.b += s.qty; a.t += s.total; });
+    const names = Object.keys(by).sort((a, b) => by[b].t - by[a].t);
+    const showBy = owner && !whoFilter && names.length > 1;
+    $("bySalesBox").hidden = !showBy;
+    if (showBy) $("bySales").innerHTML = names.map((k) => '<div class="trow"><span class="tn">' + esc(k) + '</span><span class="tq num">' + nf(by[k].n) + " nota · " + nf(by[k].b) + ' botol</span><span class="tt num">' + rp(by[k].t) + "</span></div>").join("");
+
+    const sh = {};
+    ds.forEach((s) => { const k = s.cust ? s.cust.name : "Tanpa toko"; const a = sh[k] || (sh[k] = { n: 0, b: 0, t: 0 }); a.n++; a.b += s.qty; a.t += s.total; });
+    const shn = Object.keys(sh).sort((a, b) => sh[b].t - sh[a].t);
+    $("byShopBox").hidden = shn.length < 1 || (shn.length === 1 && shn[0] === "Tanpa toko");
+    $("byShop").innerHTML = shn.slice(0, 15).map((k) => '<div class="trow"><span class="tn">' + esc(k) + '</span><span class="tq num">' + nf(sh[k].n) + " nota · " + nf(sh[k].b) + ' botol</span><span class="tt num">' + rp(sh[k].t) + "</span></div>").join("") + (shn.length > 15 ? '<p class="empty">Menampilkan 15 toko teratas dari ' + nf(shn.length) + ".</p>" : "");
+
+    $("dayTitle").textContent = period === "hari" ? "Nota " + fmtShort(selectedDay) : "Nota " + r.label;
+    const showWho = owner && !whoFilter;
+    const shown = ds.slice(0, 100);
+    $("dayList").innerHTML = shown.length ? shown.map((s) => '<button type="button" class="lrow" data-act="nota-open" data-id="' + esc(s.id) + '"><span class="lr-main"><b>' + esc(s.inv) + '</b><small class="num">' + (period === "hari" ? "" : esc(fmtShort(notaDate(s))) + " · ") + fmtTime(s.ts) + " · " + nf(s.qty) + " botol" + (s.cust ? " · " + esc(s.cust.name) : "") + (showWho && s.by ? " · " + esc(s.by) : "") + (pendingOf(s.id) ? " · belum terkirim" : "") + '</small></span><span class="lr-side num">' + rp(s.total) + "</span></button>").join("") + (ds.length > 100 ? '<p class="empty">Menampilkan 100 nota terbaru dari ' + nf(ds.length) + ".</p>" : "") : '<p class="empty">Belum ada penjualan pada periode ini.</p>';
+
+    const agg = {};
+    vs.forEach((s) => { const k = notaDate(s); const a = agg[k] || (agg[k] = { n: 0, q: 0, t: 0 }); a.n++; a.q += s.qty; a.t += s.total; });
+    const keys = Object.keys(agg).sort().reverse().slice(0, 30);
+    let max = 0;
+    keys.forEach((k) => { if (agg[k].t > max) max = agg[k].t; });
+    $("daysList").innerHTML = keys.length ? keys.map((k) => {
+      const a = agg[k], pct = max ? Math.max(3, Math.round(a.t / max * 100)) : 0;
+      return '<button type="button" class="day-row" data-act="day-open" data-day="' + k + '" aria-pressed="' + (k >= r.from && k <= r.to) + '"><span class="dl"><b>' + esc(fmtShort(k)) + '</b><small class="num">' + nf(a.n) + " nota · " + nf(a.q) + ' btl</small></span><span class="track"><span class="fill" style="width:' + pct + '%"></span></span><span class="dv num">' + rp(a.t) + "</span></button>";
+    }).join("") : '<p class="empty">Belum ada riwayat. Simpan pesanan pertama dari tab Kasir.</p>';
+    $("rekapNote").textContent = owner ? "Rekap gabungan semua sales dari server. Rekap lengkap juga ada di Google Sheets." : "Rekap penjualan Anda sendiri.";
+    $("csvBtn").hidden = ds.length === 0;
+  }
+  const csvCell = (v) => { const s = String(v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  function csvText(list) {
+    const rows = [["No Nota", "Tanggal", "Jam", "Sales", "Toko", ...PRODUCTS.map((p) => p.name), "Total Botol", "Total (Rp)", "Tunai (Rp)", "Kembalian (Rp)"]];
+    list.slice().sort((a, b) => a.ts - b.ts).forEach((s) => {
+      const q = {}; s.items.forEach((i) => { q[i.i] = (q[i.i] || 0) + i.q; });
+      const d = new Date(s.ts);
+      rows.push([s.inv, notaDate(s), pad(d.getHours()) + ":" + pad(d.getMinutes()), s.by, s.cust ? s.cust.name : "", ...PRODUCTS.map((p) => q[p.id] || 0), s.qty, s.total, s.cash, s.change]);
+    });
+    return rows.map((r) => r.map(csvCell).join(",")).join("\r\n");
+  }
+
+  /* ================= berkas ================= */
+  async function shareOrDownload(name, data, mime) {
+    const type = mime || "text/plain";
+    try {
+      const file = new File([data], name, { type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return "shared"; }
+    } catch (e) { if (e && e.name === "AbortError") return "cancel"; }
+    try {
+      const blob = new Blob([data], { type });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      return "downloaded";
+    } catch (e) { return "fail"; }
+  }
+  async function saveFile(name, data, mime) {
+    const r = await shareOrDownload(name, data, mime);
+    if (r === "shared" || r === "downloaded") toast("File disimpan");
+    else if (r === "fail") toast("Tidak bisa menyimpan file. Gunakan Salin nota.");
+    return r;
+  }
+
+  /* ================= nota ================= */
+  const pdesc = (c) => (PBY[c] ? PBY[c].desc : "");
+  function receiptHTML(s) {
+    const d = new Date(s.ts);
+    const items = s.items.map((i) => '<div><div class="r-name">' + esc(i.i) + " · " + esc(pdesc(i.i)) + '</div><div class="r-line num"><span>' + nf(i.q) + " pak x " + nf(i.p) + "</span><span>" + nf(i.q * i.p) + "</span></div></div>").join("");
+    return '<div class="r-head"><div class="r-shop">' + esc(s.shop || D.settings.shop) + '</div><div class="r-sub">Nota penjualan</div></div><hr>' +
+      '<div class="r-meta num"><div class="r-line"><span>No</span><span>' + esc(s.inv) + '</span></div><div class="r-line"><span>Tanggal</span><span>' + esc(d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })) + '</span></div><div class="r-line"><span>Jam</span><span>' + fmtTime(s.ts) + "</span></div>" +
+      (s.by ? '<div class="r-line"><span>Sales</span><span>' + esc(s.by) + "</span></div>" : "") +
+      (s.cust ? '<div class="r-line"><span>Toko</span><span>' + esc(s.cust.name) + "</span></div>" + (s.cust.address ? '<div class="r-addr">' + esc(s.cust.address) + "</div>" : "") : "") +
+      '</div><hr><div class="r-items">' + items + '</div><hr><div class="r-sum num"><div class="r-line r-total"><span>Total (' + nf(s.qty) + " botol)</span><span>" + rp(s.total) + '</span></div><div class="r-line"><span>Tunai</span><span>' + rp(s.cash) + '</span></div><div class="r-line"><span>Kembalian</span><span>' + rp(s.change) + '</span></div></div><hr><div class="r-thanks">Terima kasih</div>';
   }
   function receiptText(s) {
-    var W = 32, line = new Array(W + 1).join("-");
-    function two(a, b) { a = String(a); b = String(b); return a + new Array(Math.max(1, W - a.length - b.length) + 1).join(" ") + b; }
-    function center(a) { a = String(a); return a.length >= W ? a : new Array(Math.floor((W - a.length) / 2) + 1).join(" ") + a; }
-    var d = new Date(s.ts);
-    var out = [center((s.shop || "Penjualan Yakult").toUpperCase()), center("Nota penjualan"), line,
-      two("No", invNo(s)),
-      two("Tanggal", d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })),
-      two("Jam", fmtTime(s.ts)), line];
-    s.items.forEach(function (i) {
-      out.push(i.name);
-      out.push(two("  " + nf(i.qty) + " x " + nf(i.price), nf(i.qty * i.price)));
-    });
+    const W = 32, line = "-".repeat(W);
+    const two = (a, b) => { a = String(a); b = String(b); return a + " ".repeat(Math.max(1, W - a.length - b.length)) + b; };
+    const center = (a) => { a = String(a); return a.length >= W ? a : " ".repeat(Math.floor((W - a.length) / 2)) + a; };
+    const d = new Date(s.ts);
+    const out = [center((s.shop || D.settings.shop).toUpperCase()), center("Nota penjualan"), line, two("No", s.inv), two("Tanggal", d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })), two("Jam", fmtTime(s.ts))];
+    if (s.by) out.push(two("Sales", s.by));
+    if (s.cust) { out.push(two("Toko", s.cust.name)); if (s.cust.address) out.push(s.cust.address); }
     out.push(line);
-    out.push(two("Total (" + nf(s.qty) + " botol)", rp(s.total)));
-    out.push(two("Tunai", rp(s.cash)));
-    out.push(two("Kembalian", rp(s.change)));
-    out.push(line);
-    out.push(center("Terima kasih"));
+    s.items.forEach((i) => { out.push(i.i + " " + pdesc(i.i)); out.push(two("  " + nf(i.q) + " pak x " + nf(i.p), nf(i.q * i.p))); });
+    out.push(line, two("Total (" + nf(s.qty) + " botol)", rp(s.total)), two("Tunai", rp(s.cash)), two("Kembalian", rp(s.change)), line, center("Terima kasih"));
     return out.join("\n");
   }
-
-  function setDelLabel() {
-    $("rDel").textContent = confirming ? "Tekan lagi untuk hapus" : "Hapus";
+  async function shareReceipt(s) {
+    const text = receiptText(s);
+    try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    copyText(text, "Nota tersalin. Tempel ke WhatsApp.");
   }
+  const setDelLabel = () => { $("rDel").textContent = confirmingDel ? "Tekan lagi untuk hapus" : "Hapus"; };
   function showReceipt(s, fromHistory) {
-    openSale = s; openFromHistory = fromHistory; confirming = false;
+    openSale = s; openFromHistory = fromHistory; confirmingDel = false;
     $("paper").innerHTML = receiptHTML(s);
-    $("rDel").hidden = !fromHistory;
-    $("rDl").hidden = false;
-    setDelLabel();
+    $("rDel").hidden = !(fromHistory && isOwner()); setDelLabel();
     lastFocus = document.activeElement;
-    $("overlay").hidden = false;
-    $("overlay").scrollTop = 0;
+    $("rOverlay").hidden = false; $("rOverlay").scrollTop = 0;
     $("rClose").focus();
   }
   function closeReceipt() {
-    $("overlay").hidden = true;
-    openSale = null;
-    if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
+    $("rOverlay").hidden = true; openSale = null;
+    if (lastFocus && lastFocus.focus && document.contains(lastFocus)) { try { lastFocus.focus(); } catch (e) {} }
   }
-  $("rClose").addEventListener("click", closeReceipt);
-  $("overlay").addEventListener("click", function (e) { if (e.target === $("overlay")) closeReceipt(); });
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !$("overlay").hidden) closeReceipt();
-  });
 
-  $("rCopy").addEventListener("click", function () {
-    confirming = false; setDelLabel();
-    if (!openSale) return;
-    var text = receiptText(openSale);
-    var done = function () { toast("Nota tersalin"); };
-    var fail = function () { toast("Tidak bisa menyalin. Blok teks nota secara manual."); };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done, fail);
-    } else { fail(); }
-  });
-  $("rDl").addEventListener("click", function () {
-    confirming = false; setDelLabel();
-    if (openSale) saveFile("nota-" + invNo(openSale) + ".txt", receiptText(openSale));
-  });
-  $("rDel").addEventListener("click", function () {
-    if (!openSale || !openFromHistory) return;
-    if (!confirming) { confirming = true; setDelLabel(); return; }
-    var s = openSale;
-    remove(s).then(function () {
-      closeReceipt();
-      renderAll();
-      toast("Nota dihapus");
-    }).catch(function (e) {
-      confirming = false; setDelLabel();
-      toast(errMsg(e, "Gagal menghapus. Coba lagi."));
+  /* ================= akun ================= */
+  function renderAkun() {
+    const u = me();
+    $("whoami").textContent = "Masuk sebagai " + u.name + " (" + roleName(u.role) + "), kode nota " + (u.kode || "-") + ".";
+    $("setLock").checked = !!cfg.lock;
+    if (u.role === "owner") {
+      $("accList").innerHTML = D.users.map((a) => '<div class="acc-row"><span class="lr-main"><b>' + esc(a.name) + (a.id === u.id ? " (Anda)" : "") + (a.active === false ? " · nonaktif" : "") + "</b><small>" + roleName(a.role) + " · kode nota " + esc(a.kode || "-") + '</small></span><span class="btns"><button class="btn" type="button" data-act="acc-edit" data-id="' + esc(a.id) + '">Ubah</button>' + (a.id === u.id ? "" : '<button class="btn" type="button" data-act="acc-reset" data-id="' + esc(a.id) + '">Reset PIN</button>') + (a.id === u.id || a.role === "owner" ? "" : '<button class="btn ' + (a.active === false ? "" : "danger") + '" type="button" data-act="acc-toggle" data-id="' + esc(a.id) + '">' + (a.active === false ? "Aktifkan" : "Nonaktifkan") + "</button>") + "</span></div>").join("");
+      if (document.activeElement !== $("setShop")) $("setShop").value = D.settings.shop;
+      if (document.activeElement !== $("setLow")) $("setLow").value = D.settings.low;
+      const pl = $("priceList");
+      if (!pl.firstChild) pl.innerHTML = PRODUCTS.map((p) => '<div><label class="lbl" for="pr-' + p.id + '">' + p.name + " · " + esc(p.desc) + '</label><div class="field plain"><span>Rp</span><input id="pr-' + p.id + '" data-price-id="' + p.id + '" type="number" inputmode="numeric" min="0" max="1000000"></div></div>').join("");
+      PRODUCTS.forEach((p) => { const el = $("pr-" + p.id); if (el && document.activeElement !== el) el.value = priceOf(p); });
+    }
+    renderSync();
+  }
+  function accDialog(kind, id) {
+    const a = id ? D.users.find((x) => x.id === id) : null;
+    const title = kind === "add" ? "Tambah sales" : kind === "edit" ? "Ubah " + (a ? a.name : "") : "Reset PIN " + (a ? a.name : "");
+    openModal({
+      title,
+      body: (kind === "add" || kind === "edit" ? '<div class="fld"><label for="kName">Nama</label><input id="kName" type="text" maxlength="30" autocomplete="off" value="' + esc(a ? a.name : "") + '"></div><div class="fld"><label for="kCode">Kode nota (2 sampai 4 huruf atau angka' + (kind === "add" ? ", boleh kosong" : "") + ')</label><input id="kCode" class="upper" type="text" maxlength="4" autocomplete="off" autocapitalize="characters" value="' + esc(a ? a.kode : "") + '"></div>' : "") +
+        (kind !== "edit" ? '<div class="fld"><label for="kPin">PIN' + (kind === "add" ? "" : " baru") + ' (4 sampai 6 angka)</label><input id="kPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"></div><p class="note">Sampaikan PIN ini ke orangnya. Ia bisa menggantinya sendiri di menu Akun.</p>' : ""),
+      actions: [{ label: "Batal" }, { label: "Simpan", cls: "primary", fn: async () => {
+        let r;
+        if (kind === "add") {
+          if (!val("kName").trim()) { modalErr("Isi nama sales."); return false; }
+          if (!validPin(val("kPin"))) { modalErr("PIN harus 4 sampai 6 angka."); return false; }
+          r = await call("user_add", { name: val("kName").trim(), kode: val("kCode").trim(), pin: val("kPin") });
+        } else if (kind === "edit") {
+          if (!val("kName").trim()) { modalErr("Isi nama."); return false; }
+          r = await call("user_edit", { id, name: val("kName").trim(), kode: val("kCode").trim() });
+        } else {
+          if (!validPin(val("kPin"))) { modalErr("PIN harus 4 sampai 6 angka."); return false; }
+          r = await call("user_pin", { id, pin: val("kPin") });
+        }
+        if (!r.ok) { modalErr(errText(r)); return false; }
+        if (r.users) { D.users = r.users; if (kind === "edit" && id === me().id) { const m = r.users.find((x) => x.id === id); if (m) cfg.sess.user.name = m.name, cfg.sess.user.kode = m.kode; } }
+        persist(); renderCurrent(); toast(kind === "add" ? "Sales ditambahkan" : kind === "edit" ? "Disimpan" : "PIN diganti");
+      } }]
     });
+  }
+  async function toggleUser(id) {
+    const a = D.users.find((x) => x.id === id);
+    if (!a) return;
+    const on = a.active === false;
+    confirmModal(on ? "Aktifkan akun?" : "Nonaktifkan akun?", on ? a.name + " bisa masuk lagi." : a.name + " tidak bisa masuk lagi. Nota dan stoknya tetap tersimpan. HP-nya akan keluar otomatis.", on ? "Aktifkan" : "Nonaktifkan", async () => {
+      const r = await call("user_edit", { id, active: on });
+      if (!r.ok) { toast(errText(r)); return false; }
+      D.users = r.users; persist(); renderCurrent(); toast(on ? "Akun diaktifkan" : "Akun dinonaktifkan");
+    }, !on);
+  }
+  function myPinDialog() {
+    openModal({
+      title: "Ganti PIN",
+      body: '<div class="fld"><label for="mOld">PIN sekarang</label><input id="mOld" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"></div><div class="fld"><label for="mNew">PIN baru (4 sampai 6 angka)</label><input id="mNew" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password"></div><div class="fld"><label for="mNew2">Ulangi PIN baru</label><input id="mNew2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password"></div>',
+      actions: [{ label: "Batal" }, { label: "Ganti PIN", cls: "primary", fn: async () => {
+        if (!validPin(val("mNew"))) { modalErr("PIN baru harus 4 sampai 6 angka."); return false; }
+        if (val("mNew") !== val("mNew2")) { modalErr("Ulangi PIN tidak sama."); return false; }
+        const r = await call("my_pin", { old: val("mOld"), pin: val("mNew") });
+        if (!r.ok) { modalErr(r.err === "pin" ? "PIN sekarang salah." : errText(r)); return false; }
+        if (r.verifier) cfg.sess.verifier = r.verifier;
+        persist(); toast("PIN diganti");
+      } }]
+    });
+  }
+  function newCodeDialog() {
+    openModal({
+      title: "Kode pemulihan baru",
+      body: '<p class="note">Masukkan PIN Anda. Kode lama tidak berlaku lagi setelah kode baru dibuat.</p><div class="fld"><label for="cPin">PIN Admin</label><input id="cPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"></div>',
+      actions: [{ label: "Batal" }, { label: "Buat kode", cls: "primary", fn: async () => {
+        const r = await call("new_code", { pin: val("cPin") });
+        if (!r.ok) { modalErr(r.err === "pin" ? "PIN salah." : errText(r)); return false; }
+        codeModal(r.recovery, () => {});
+        return false;
+      } }]
+    });
+  }
+  async function saveSettingsRemote(patch, okMsg) {
+    const r = await call("set_settings", patch);
+    if (!r.ok) { toast(errText(r)); return false; }
+    D.settings = { shop: r.settings.shop, low: r.settings.low, prices: r.settings.prices || {} };
+    persist(); renderCurrent(); toast(okMsg);
+    return true;
+  }
+
+  /* ================= pindahkan data lama (cadangan versi 4) ================= */
+  function importBackup(file) {
+    const fr = new FileReader();
+    fr.onload = () => {
+      let j;
+      try { j = JSON.parse(fr.result); } catch (e) { toast("File itu bukan cadangan yang valid."); return; }
+      if (!j || j.app !== "kasir-yakult") { toast("File itu bukan cadangan Kasir Yakult."); return; }
+      const safe = (x) => "i" + String(x || rnd() + rnd()).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 36).padEnd(3, "x");
+      const cutoff = Date.now() - 380 * 86400000;
+      const custs = (Array.isArray(j.customers) ? j.customers : []).filter((c) => c && String(c.name || "").trim());
+      const sales = (Array.isArray(j.sales) ? j.sales : []).filter((s) => s && Number(s.ts) > cutoff && Array.isArray(s.items) && s.items.some((i) => i && PBY[i.id] && Number(i.qty) > 0));
+      confirmModal("Pindahkan data lama?", "Ditemukan " + nf(custs.length) + " toko dan " + nf(sales.length) + " penjualan (hanya item per pak yang bisa dipindah). Penjualan akan tercatat atas nama akun Anda. Lanjutkan?", "Pindahkan", () => {
+        const map = {}; let nc = 0, ns = 0;
+        const byName = {}; custList().forEach((c) => { byName[c.name.toLowerCase()] = c.id; });
+        custs.forEach((c) => {
+          const name = String(c.name).trim().slice(0, 60), low = name.toLowerCase();
+          if (byName[low]) { map[c.id] = byName[low]; return; }
+          const rec = saveCust({ id: safe(c.id), name, contact: String(c.contact || "").slice(0, 40), phone: String(c.phone || "").slice(0, 25), address: String(c.address || "").slice(0, 200), note: String(c.note || "").slice(0, 120) });
+          map[c.id] = rec.id; byName[low] = rec.id; nc++;
+        });
+        sales.forEach((s) => {
+          const id = safe(s.id);
+          if (D.nota[id]) return;
+          const items = s.items.filter((i) => i && PBY[i.id] && Number(i.qty) > 0).map((i) => ({ i: i.id, q: Math.min(9999, Math.floor(Number(i.qty))), p: Math.max(0, Math.round(Number(i.price) || 0)) }));
+          const cid = s.cust && map[s.cust.id], c = cid ? D.pel[cid] : null;
+          const cust = c ? { id: c.id, name: c.name, address: c.address || "", phone: c.phone || "" } : null;
+          const total = items.reduce((a, i) => a + i.q * i.p, 0), botol = items.reduce((a, i) => a + i.q * PBY[i.i].isi, 0);
+          const inv = String(s.sc ? "YK-" + dateKey(s.ts).replace(/-/g, "") + "-" + s.sc + "-" + pad(s.no || 1, 3) : "YK-" + dateKey(s.ts).replace(/-/g, "") + "-" + pad(s.no || 1, 3)).slice(0, 30);
+          const cash = Math.max(total, Math.round(Number(s.cash) || 0));
+          D.nota[id] = { id, inv, ts: Number(s.ts), no: Number(s.no) || 1, uid: me().id, by: me().name, cust, items, qty: botol, total, cash, change: cash - total, shop: D.settings.shop, del: 0 };
+          D.queue.push({ k: newId("q"), t: "sale", d: { id, ts: Number(s.ts), no: Number(s.no) || 1, inv, items, cash, cust, shop: D.settings.shop }, u: me().id, tries: 0 });
+          ns++;
+        });
+        ver++; persist(); renderCurrent(); syncSoon();
+        toast("Dipindahkan: " + nf(nc) + " toko, " + nf(ns) + " penjualan");
+      });
+    };
+    fr.onerror = () => toast("Tidak bisa membaca file itu.");
+    fr.readAsText(file);
+  }
+
+  /* ================= penanganan klik dan input ================= */
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-act]");
+    if (!b || b.disabled) return;
+    const a = b.dataset.act;
+    switch (a) {
+      case "tab": switchTab(b.dataset.tab); break;
+      case "plus": setQty(b.dataset.id, qty[b.dataset.id] + 1); break;
+      case "minus": setQty(b.dataset.id, qty[b.dataset.id] - 1); break;
+      case "cash-quick": { const v = b.dataset.cash === "exact" ? totals().t : parseInt(b.dataset.cash, 10); $("cash").value = v ? nf(v) : ""; renderKasir(); break; }
+      case "reset": resetOrder(); break;
+      case "save": doSave(); break;
+      case "pick-cust": pickDialog(); break;
+      case "pick-clear": selCust = ""; renderKasir(); break;
+      case "repeat": repeatOrder(b.dataset.id); break;
+      case "period": period = b.dataset.p; renderHistory(); break;
+      case "today": selectedDay = dateKey(Date.now()); renderHistory(); break;
+      case "day-open": selectedDay = b.dataset.day; period = "hari"; renderHistory(); window.scrollTo(0, 0); break;
+      case "nota-open": { const s = D.nota[b.dataset.id]; if (s) showReceipt(s, true); break; }
+      case "csv": { const p = periodSales(); saveFile("rekap-" + period + "-" + selectedDay + ".csv", "﻿" + csvText(p.ds), "text/csv;charset=utf-8"); break; }
+      case "stk-masuk": batchDialog("masuk"); break;
+      case "stk-bawa": batchDialog("bawa"); break;
+      case "stk-kembali": batchDialog("kembali"); break;
+      case "stk-close": closeDayDialog(); break;
+      case "stk-pick": stkSel = b.dataset.id; renderStok(); window.scrollTo(0, 0); break;
+      case "stk-void": {
+        const id = b.dataset.id, ev = D.stok[id];
+        if (!ev) break;
+        confirmModal("Batalkan catatan stok?", "Catatan " + ev.code + " (" + ev.type + " " + nf(ev.qty) + ") dibatalkan dan tidak dihitung lagi.", "Batalkan", () => {
+          ev.void = 1; D.queue = D.queue.filter((o) => !(o.t === "stok" && o.d.id === id));
+          if (!pendingOf(id)) D.queue.push({ k: newId("q"), t: "stok_void", d: { id }, u: me().id, tries: 0 });
+          persist(); renderCurrent(); syncSoon(); toast("Catatan dibatalkan");
+        }, true);
+        break;
+      }
+      case "cust-add": customerDialog(null); break;
+      case "cust-edit": customerDialog(b.dataset.id); break;
+      case "acc-add": accDialog("add"); break;
+      case "acc-edit": accDialog("edit", b.dataset.id); break;
+      case "acc-reset": accDialog("reset", b.dataset.id); break;
+      case "acc-toggle": toggleUser(b.dataset.id); break;
+      case "invite": copyText(location.origin + location.pathname + "#server=" + encodeURIComponent(cfg.url), "Tautan undangan disalin. Kirim ke sales lewat WhatsApp."); break;
+      case "my-pin": myPinDialog(); break;
+      case "new-code": newCodeDialog(); break;
+      case "logout": {
+        const n = myQueue().length;
+        if (n) confirmModal("Keluar?", n + " data belum terkirim. Data tetap tersimpan di HP ini dan terkirim saat Anda masuk lagi dengan sinyal.", "Tetap keluar", () => { logout(); }, true);
+        else logout();
+        break;
+      }
+      case "bk-import": $("bkFile").click(); break;
+      case "sync-now": syncNow(true); break;
+      case "rej-clear": D.rej = []; persist(); renderWarn(); break;
+      case "auth-connect": connectUrl(val("aUrl")); break;
+      case "auth-retry": startFromStatus(); break;
+      case "auth-server": showConnect(); break;
+      case "auth-setup": doSetup(); break;
+      case "auth-login": doLogin(); break;
+      case "auth-unlock": doUnlock(); break;
+      case "auth-switch": logout(); break;
+      case "auth-forgot": forgotDialog(); break;
+      case "r-share": confirmingDel = false; setDelLabel(); if (openSale) shareReceipt(openSale); break;
+      case "r-copy": confirmingDel = false; setDelLabel(); if (openSale) copyText(receiptText(openSale), "Nota tersalin"); break;
+      case "r-dl": confirmingDel = false; setDelLabel(); if (openSale) saveFile("nota-" + openSale.inv + ".txt", receiptText(openSale), "text/plain;charset=utf-8"); break;
+      case "r-del": {
+        if (!openSale || !openFromHistory || !isOwner()) break;
+        if (!confirmingDel) { confirmingDel = true; setDelLabel(); break; }
+        const s = openSale;
+        s.del = 1; ver++;
+        D.queue.push({ k: newId("q"), t: "sale_del", d: { id: s.id }, u: me().id, tries: 0 });
+        persist(); closeReceipt(); renderCurrent(); toast("Nota dihapus"); syncSoon();
+        break;
+      }
+      case "r-close": closeReceipt(); break;
+    }
   });
+  $("items").addEventListener("input", (e) => { if (e.target.tagName === "INPUT") setQty(e.target.id.replace("q-", ""), e.target.value); });
+  $("items").addEventListener("focusout", (e) => { if (e.target.tagName === "INPUT") renderKasir(); });
+  $("cash").addEventListener("input", (e) => { const raw = e.target.value.replace(/\D/g, ""); e.target.value = raw ? parseInt(raw, 10).toLocaleString("id-ID") : ""; renderKasir(); });
+  $("day").addEventListener("change", (e) => { if (e.target.value) { selectedDay = e.target.value; renderHistory(); } });
+  $("whoSel").addEventListener("change", (e) => { whoFilter = e.target.value; renderHistory(); });
+  $("stkUser").addEventListener("change", (e) => { stkSel = e.target.value; renderStok(); });
+  $("cSearch").addEventListener("input", renderPelanggan);
+  $("priceList").addEventListener("change", async (e) => {
+    const id = e.target.dataset && e.target.dataset.priceId, p = PBY[id];
+    if (!p) return;
+    const raw = e.target.value.trim(), n = Number(raw);
+    if (raw === "" || !Number.isInteger(n) || n < 0 || n > 1000000) { e.target.value = priceOf(p); toast("Isi harga dengan angka bulat, 0 sampai 1.000.000."); return; }
+    const prices = Object.assign({}, D.settings.prices); prices[id] = n;
+    const ok = await saveSettingsRemote({ prices }, "Harga " + p.name + " disimpan");
+    if (!ok) e.target.value = priceOf(p);
+  });
+  $("setShop").addEventListener("change", () => { const v = val("setShop").trim(); if (!v) { $("setShop").value = D.settings.shop; return; } saveSettingsRemote({ shop: v }, "Nama usaha disimpan"); });
+  $("setLow").addEventListener("change", () => { const n = Math.round(Number(val("setLow"))); if (!(isFinite(n) && n >= 0 && n <= 9999)) { $("setLow").value = D.settings.low; toast("Isi 0 sampai 9999."); return; } saveSettingsRemote({ low: n }, "Batas stok menipis disimpan"); });
+  $("setLock").addEventListener("change", () => { cfg.lock = $("setLock").checked; persist(); toast(cfg.lock ? "PIN diminta setiap aplikasi dibuka" : "Tetap masuk di HP ini"); });
+  $("bkFile").addEventListener("change", (e) => { const f = e.target.files && e.target.files[0]; if (f) importBackup(f); e.target.value = ""; });
+  $("modal").addEventListener("click", (e) => { if (e.target === $("modal") && modalState && !modalState.sticky) closeModal(); });
+  $("rOverlay").addEventListener("click", (e) => { if (e.target === $("rOverlay")) closeReceipt(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { if (!$("modal").hidden && modalState && !modalState.sticky) closeModal(); else if (!$("rOverlay").hidden) closeReceipt(); }
+    if (e.key === "Enter" && e.target) {
+      if (e.target.id === "aPinL") doLogin();
+      else if (e.target.id === "aPin2") doSetup();
+      else if (e.target.id === "aPinK") doUnlock();
+      else if (e.target.id === "aUrl") connectUrl(val("aUrl"));
+    }
+  });
+  window.addEventListener("online", () => { offline = false; syncNow(); });
+  window.addEventListener("offline", () => { offline = true; renderChip(); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) syncNow(); });
 
-  function toast(msg) {
-    var t = $("toast");
-    t.textContent = msg;
-    t.hidden = false;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { t.hidden = true; }, 2600);
-  }
-
-  /* ---------- tab ---------- */
-  function selectTab(name) {
-    var k = name === "kasir";
-    $("tabKasir").setAttribute("aria-selected", String(k));
-    $("tabRiwayat").setAttribute("aria-selected", String(!k));
-    $("viewKasir").hidden = !k;
-    $("viewRiwayat").hidden = k;
-    $("bar").hidden = !k;
-    if (!k) renderHistory();
-  }
-  $("tabKasir").addEventListener("click", function () { selectTab("kasir"); });
-  $("tabRiwayat").addEventListener("click", function () { selectTab("riwayat"); });
-
-  function renderAll() {
-    renderKasir();
-    if (!$("viewRiwayat").hidden) renderHistory();
-  }
-
-  /* ---------- mulai ---------- */
-  renderKasir();
-  if (window.claude && typeof window.claude.use === "function") {
-    window.claude.use("downloads").then(function (d) { dl = d || null; renderAll(); }).catch(function () {});
-    window.claude.use("db").then(function (db) {
-      if (!db) { useLocal(); return; }
-      dbRef = db;
-      db.collection("sales").orderBy("ts", "desc").limit(1000).onSnapshot(function (snap) {
-        mode = "db"; ready = true;
-        sales = snap.docs.map(function (d) { return clean(d.id, d.data() || {}); })
-          .filter(function (s) { return s.ts > 0; })
-          .sort(function (a, b) { return b.ts - a.ts; });
-        renderAll();
-      }, function () { useLocal(); });
-    }).catch(function () { useLocal(); });
-  } else {
-    useLocal();
-  }
+  /* ================= mulai ================= */
+  loadAll();
+  if (!storageWorks()) storageBad = true;
+  (function () {
+    const m = /^#server=(.+)$/.exec(location.hash || "");
+    if (!m) return;
+    try { const u = decodeURIComponent(m[1]); if (validUrl(u) && u !== cfg.url) { cfg.url = u; cfg.sess = null; wipeData(); persist(); } } catch (e) {}
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  })();
+  renderWarn();
+  if (!cfg.url) showConnect();
+  else if (cfg.sess && cfg.lock) showLock();
+  else if (cfg.sess) enterApp();
+  else startFromStatus();
 })();
-</script>
 
+</script>
 </body>
 </html>
