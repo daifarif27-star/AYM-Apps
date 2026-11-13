@@ -261,6 +261,32 @@ header { position: relative; }
 .chip { margin-top: 8px; font: inherit; font-size: 0.8rem; font-weight: 700; color: var(--muted); background: var(--surface); border: 1px solid currentColor; border-radius: 999px; padding: 4px 12px; cursor: pointer; touch-action: manipulation; }
 .chip.ok { color: var(--ok); } .chip.low { color: var(--low); } .chip.bad { color: var(--warn); }
 .linkbtn[data-act="stk-void"] { font-size: 0.78rem; padding: 2px 0; }
+
+.vrow { display: flex; align-items: center; gap: 8px; padding-right: 12px; }
+.vrow + .vrow { border-top: 1px solid var(--line); }
+.vrow .lrow { flex: 1; min-width: 0; border-top: 0 !important; }
+.vrow .btn { flex: none; }
+.days { display: flex; flex-wrap: wrap; gap: 6px; }
+.daychip { font: inherit; font-size: 0.85rem; font-weight: 500; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; cursor: pointer; touch-action: manipulation; }
+.daychip[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; }
+.visit .row-head p { font-weight: 700; color: var(--fg); }
+.sheet-actions .btn.primary { background: var(--accent); }
+@media print {
+  html, body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
+  body > *:not(#rOverlay) { display: none !important; }
+  #rOverlay { position: static !important; display: block !important; background: none !important; padding: 0 !important; overflow: visible !important; }
+  #rOverlay[hidden] { display: none !important; }
+  .sheet { max-width: none !important; margin: 0 !important; gap: 0 !important; }
+  .sheet-actions { display: none !important; }
+  .paper { background: #fff !important; color: #000 !important; border-radius: 0 !important; padding: 1mm !important; box-shadow: none !important; }
+  .paper::after { display: none !important; }
+  .paper hr { border-top-color: #000 !important; }
+}
+.tokorow{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding-top:2px;font-size:.82rem;color:var(--muted,#6b7280)}
+.tokorow input{width:76px;min-height:36px;padding:4px 8px;text-align:right;border:1px solid var(--line);border-radius:8px;background:var(--card,transparent);color:inherit;font:inherit}
+.tokorow .tot{margin-left:auto;font-weight:600;color:inherit}
+.stoktoko .note{line-height:1.6}
+.tokorow[hidden]{display:none}
 </style>
 </head>
 <body data-role="">
@@ -288,8 +314,11 @@ header { position: relative; }
   <!-- KASIR -->
   <section class="view" id="view-kasir" role="tabpanel" aria-labelledby="tab-kasir">
     <div class="row-head">
-      <p>Tekan + untuk tambah satu pak.</p>
+      <p>Tekan + untuk tambah satu botol, atau ketik jumlahnya.</p>
       <button class="btn" type="button" data-act="reset">Pesanan baru</button>
+    </div>
+    <div class="card pad visit" id="visitCard" hidden>
+      <div class="row-head"><p id="visitText"></p><button class="btn" type="button" data-act="visit-open">Lihat daftar</button></div>
     </div>
     <div class="card pad">
       <span class="lbl">Toko / pelanggan</span>
@@ -370,6 +399,8 @@ header { position: relative; }
       <p id="custCount"></p>
       <button class="btn primary" type="button" data-act="cust-add">Tambah toko</button>
     </div>
+    <div class="fld owner-only"><label for="shopWho">Toko milik sales</label><select id="shopWho"></select></div>
+    <div class="fld"><label for="visitSel">Tampilkan</label><select id="visitSel"></select></div>
     <div class="fld"><label for="cSearch">Cari</label><input id="cSearch" type="search" placeholder="Nama toko, kontak, atau telepon" autocomplete="off"></div>
     <div class="card" id="custList"></div>
   </section>
@@ -380,6 +411,7 @@ header { position: relative; }
       <h2>Akun saya</h2>
       <p class="note" id="whoami"></p>
       <label class="check" for="setLock"><input type="checkbox" id="setLock"><span>Minta PIN setiap aplikasi dibuka (di HP ini)</span></label>
+      <div class="fld"><label for="setPaper">Lebar kertas nota (untuk Cetak, di HP ini)</label><select id="setPaper"><option value="58">Printer kecil 58 mm</option><option value="80">Printer kecil 80 mm</option><option value="a4">Kertas A4 / PDF</option></select></div>
       <div class="btns">
         <button class="btn" type="button" data-act="my-pin">Ganti PIN</button>
         <button class="btn danger" type="button" data-act="logout">Keluar</button>
@@ -399,12 +431,12 @@ header { position: relative; }
     <div class="card pad owner-only">
       <h2>Usaha</h2>
       <div class="fld"><label for="setShop">Nama usaha di nota</label><input id="setShop" type="text" maxlength="40" autocomplete="off"></div>
-      <div class="fld"><label for="setLow">Tandai stok menipis jika sisa sama dengan atau di bawah (pak)</label><input id="setLow" type="number" inputmode="numeric" min="0" max="9999"></div>
+      <div class="fld"><label for="setLow">Tandai stok menipis jika sisa sama dengan atau di bawah (botol)</label><input id="setLow" type="number" inputmode="numeric" min="0" max="9999"></div>
       <div class="btns"><button class="btn" type="button" data-act="new-code">Buat kode pemulihan baru</button></div>
     </div>
 
     <div class="card pad owner-only">
-      <h2>Harga per pak</h2>
+      <h2>Harga per botol</h2>
       <div id="priceList" class="view" style="gap:10px"></div>
       <p class="note">Harga baru berlaku untuk penjualan berikutnya di semua HP. Nota lama tidak berubah.</p>
     </div>
@@ -438,15 +470,17 @@ header { position: relative; }
   <div class="sheet" role="dialog" aria-modal="true" aria-label="Nota penjualan">
     <div class="paper" id="paper"></div>
     <div class="sheet-actions">
+      <button class="btn primary" type="button" data-act="r-print">Cetak</button>
       <button class="btn" type="button" data-act="r-share">Bagikan</button>
       <button class="btn" type="button" data-act="r-copy">Salin nota</button>
       <button class="btn" type="button" data-act="r-dl">Simpan .txt</button>
       <button class="btn danger owner-only" type="button" data-act="r-del" id="rDel" hidden>Hapus</button>
-      <button class="btn primary" type="button" data-act="r-close" id="rClose">Selesai</button>
+      <button class="btn" type="button" data-act="r-close" id="rClose">Selesai</button>
     </div>
   </div>
 </div>
 
+<style id="pageStyle"></style>
 <div class="overlay" id="modal" hidden><div class="modal-box" id="modalBox" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -456,14 +490,14 @@ header { position: relative; }
 
   /* ================= data tetap ================= */
   const PRODUCTS = [
-    { id: "YO05", name: "YO05", desc: "Yakult Original", isi: 5, price: 10000, color: "var(--dot-original)" },
-    { id: "YO02", name: "YO02", desc: "Yakult Original", isi: 2, price: 4000,  color: "var(--dot-original)" },
-    { id: "OM05", name: "OM05", desc: "Yakult Mangga",   isi: 5, price: 10500, color: "var(--dot-mangga)" },
-    { id: "OM02", name: "OM02", desc: "Yakult Mangga",   isi: 2, price: 4200,  color: "var(--dot-mangga)" },
-    { id: "OS05", name: "OS05", desc: "Yakult Stroberi", isi: 5, price: 10500, color: "var(--dot-stroberi)" },
-    { id: "OS02", name: "OS02", desc: "Yakult Stroberi", isi: 2, price: 4200,  color: "var(--dot-stroberi)" },
-    { id: "YT05", name: "YT05", desc: "Yakult Light",    isi: 5, price: 12500, color: "var(--dot-light)" },
-    { id: "YT02", name: "YT02", desc: "Yakult Light",    isi: 2, price: 5000,  color: "var(--dot-light)" }
+    { id: "YO05", name: "YO05", desc: "Yakult Original", isi: 5, pb: 2000, color: "var(--dot-original)" },
+    { id: "YO02", name: "YO02", desc: "Yakult Original", isi: 2, pb: 2000,  color: "var(--dot-original)" },
+    { id: "OM05", name: "OM05", desc: "Yakult Mangga",   isi: 5, pb: 2100, color: "var(--dot-mangga)" },
+    { id: "OM02", name: "OM02", desc: "Yakult Mangga",   isi: 2, pb: 2100,  color: "var(--dot-mangga)" },
+    { id: "OS05", name: "OS05", desc: "Yakult Stroberi", isi: 5, pb: 2100, color: "var(--dot-stroberi)" },
+    { id: "OS02", name: "OS02", desc: "Yakult Stroberi", isi: 2, pb: 2100,  color: "var(--dot-stroberi)" },
+    { id: "YT05", name: "YT05", desc: "Yakult Light",    isi: 5, pb: 2500, color: "var(--dot-light)" },
+    { id: "YT02", name: "YT02", desc: "Yakult Light",    isi: 2, pb: 2500,  color: "var(--dot-light)" }
   ];
   const PBY = {}; PRODUCTS.forEach((p) => { PBY[p.id] = p; });
   const QUICK = [5000, 10000, 20000, 50000, 100000];
@@ -472,6 +506,8 @@ header { position: relative; }
   const TABS = ["kasir", "riwayat", "stok", "pelanggan", "akun"];
   const DEFAULT_SHOP = "Penjualan Yakult";
   const KEEP_DAYS = 150;
+  const CV = 6;   // versi protokol server (harus sama dengan VERSION di Code.gs)
+  const DV = 7;   // versi format data lokal di HP
   const SYNC_EVERY = 45000;
 
   /* ================= util ================= */
@@ -509,15 +545,35 @@ header { position: relative; }
   function lsSetRaw(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   function storageWorks() { try { localStorage.setItem("yk-test", "1"); localStorage.removeItem("yk-test"); return true; } catch (e) { return false; } }
 
-  let cfg = { url: "", sess: null, lock: false, last: "" };
-  const fresh = () => ({ cursor: 0, nota: {}, pel: {}, stok: {}, users: [], settings: { shop: DEFAULT_SHOP, low: 10, prices: {} }, queue: [], rej: [], lastSync: 0, skew: 0, statusUsers: [], shopName: "" });
+  let cfg = { url: "", sess: null, lock: false, last: "", paper: "58" };
+  const fresh = () => ({ v: DV, cursor: 0, nota: {}, pel: {}, stok: {}, users: [], settings: { shop: DEFAULT_SHOP, low: 50, prices: {} }, queue: [], rej: [], lastSync: 0, skew: 0, statusUsers: [], shopName: "" });
   let D = fresh();
   let ver = 0, cacheVer = -1, cacheList = [];
 
+  // Cache lama (versi pak): buang salinan data (akan ditarik ulang dari server yang sudah diperbarui)
+  // tetapi simpan antrean kirim, dengan jumlah dikonversi pak -> botol agar tidak salah hitung.
+  const isiOf = (c) => (PBY[c] ? PBY[c].isi : 1);
+  function migrateLocal(old) {
+    const f = fresh();
+    const q = Array.isArray(old.queue) ? old.queue : [];
+    f.queue = q.filter((o) => o && o.t && o.d).map((o) => {
+      const d = JSON.parse(JSON.stringify(o.d));
+      if (o.t === "sale" && Array.isArray(d.items)) d.items = d.items.map((i) => ({ i: i.i, q: Math.round(Number(i.q) * isiOf(i.i)), p: Math.round(Number(i.p) / isiOf(i.i)) }));
+      if (o.t === "stok") {
+        const x = isiOf(d.code);
+        d.qty = Math.round(Number(d.qty) * x);
+        if (d.exp !== null && d.exp !== undefined) d.exp = Math.round(Number(d.exp) * x);
+        if (d.phys !== null && d.phys !== undefined) d.phys = Math.round(Number(d.phys) * x);
+      }
+      return { k: o.k || newId("q"), t: o.t, d, u: o.u, tries: 0 };
+    });
+    return f;
+  }
   function loadAll() {
     const c = lsGet(KC, null);
-    if (c && typeof c === "object") cfg = { url: String(c.url || ""), sess: c.sess && c.sess.token && c.sess.user ? c.sess : null, lock: !!c.lock, last: String(c.last || "") };
-    const d = lsGet(KD, null);
+    if (c && typeof c === "object") cfg = { url: String(c.url || ""), sess: c.sess && c.sess.token && c.sess.user ? c.sess : null, lock: !!c.lock, last: String(c.last || ""), paper: ["58", "80", "a4"].indexOf(c.paper) >= 0 ? c.paper : "58" };
+    let d = lsGet(KD, null), mig = false;
+    if (d && typeof d === "object" && d.v !== DV) { d = migrateLocal(d); mig = true; }
     if (d && typeof d === "object") {
       const f = fresh();
       D = Object.assign(f, d);
@@ -526,6 +582,8 @@ header { position: relative; }
       if (!D.settings || typeof D.settings !== "object") D.settings = f.settings;
       D.settings.prices = D.settings.prices && typeof D.settings.prices === "object" ? D.settings.prices : {};
     }
+    D.v = DV;
+    if (mig) persist();
   }
   function pruneOld() {
     const cut = Date.now() - KEEP_DAYS * 86400000;
@@ -547,7 +605,7 @@ header { position: relative; }
 
   /* ================= data turunan ================= */
   const settings = () => D.settings;
-  const priceOf = (p) => { const v = D.settings.prices && D.settings.prices[p.id]; return Number.isFinite(v) && v >= 0 ? v : p.price; };
+  const priceOf = (p) => { const v = D.settings.prices && D.settings.prices[p.id]; return Number.isFinite(v) && v >= 0 ? v : p.pb; };
   function notaList() {
     if (cacheVer !== ver) {
       cacheList = Object.keys(D.nota).map((k) => D.nota[k]).filter((n) => !n.del).sort((a, b) => b.ts - a.ts);
@@ -618,7 +676,7 @@ header { position: relative; }
   }
   async function call(a, extra) {
     if (!cfg.url) return { ok: false, err: "net" };
-    const p = Object.assign({ a }, extra || {});
+    const p = Object.assign({ a, cv: CV }, extra || {});
     if (cfg.sess) p.t = cfg.sess.token;
     const r = await rawCall(p);
     if (!r.ok && r.err === "auth" && cfg.sess && authLostHandler) authLostHandler();
@@ -633,6 +691,7 @@ header { position: relative; }
       case "izin": return "Akun ini tidak punya izin untuk itu.";
       case "server": return "Server mengalami masalah: " + (r.msg || "tidak diketahui");
       case "nama": return "Isi nama dengan benar.";
+      case "versi": return "Aplikasi atau server belum versi terbaru. Muat ulang aplikasi (tutup lalu buka lagi).";
       case "pin": return r.sisa === 0 ? "Terlalu banyak PIN salah. Akun dikunci 5 menit." : r.sisa !== undefined ? "PIN salah. Sisa percobaan: " + r.sisa + "." : "PIN tidak sesuai.";
       case "pinbaru": return "PIN baru harus 4 sampai 6 angka.";
       case "terkunci": return "Terlalu banyak PIN salah. Coba lagi dalam " + Math.max(1, Math.ceil((r.wait || 60) / 60)) + " menit.";
@@ -650,6 +709,7 @@ header { position: relative; }
   }
 
   /* ================= antrean & sinkron ================= */
+  let srvOk = false, srvOld = false, updNeeded = false;
   let syncing = false, again = false, syncMsg = "", syncBad = false, syncTimer = null, lastTry = 0, offline = false;
   function enqueue(t, d) {
     D.queue.push({ k: newId("q"), t, d, u: cfg.sess.user.id, tries: 0 });
@@ -687,7 +747,7 @@ header { position: relative; }
       if (loc && loc.del && !n.del && pendingOf(n.id)) return;
       D.nota[n.id] = n;
     });
-    (r.pel || []).forEach((c) => { if (c && c.id && !D.queue.some((o) => o.t === "cust" && o.d.id === c.id)) D.pel[c.id] = c; });
+    (r.pel || []).forEach((c) => { if (c && c.gone) { delete D.pel[c.id]; return; } if (c && c.id && !D.queue.some((o) => o.t === "cust" && o.d.id === c.id)) D.pel[c.id] = c; });
     (r.stok || []).forEach((s) => { if (s && s.id) D.stok[s.id] = s; });
     ver++;
   }
@@ -698,10 +758,17 @@ header { position: relative; }
     syncing = true; lastTry = Date.now(); renderChip();
     let failed = "", rounds = 0;
     try {
-      for (;;) {
+      if (!srvOk) {
+        const st = await rawCall({ a: "status" });
+        if (!st.ok) failed = "net";
+        else if (st.v !== CV) { failed = "versi"; srvOld = true; }
+        else { srvOk = true; srvOld = false; }
+      }
+      while (!failed) {
         const mine = myQueue(), batch = mine.slice(0, 60);
         const r = await call("sync", { ops: batch.map((o) => ({ t: o.t, d: o.d })), since: D.cursor });
-        if (!r.ok) { failed = r.err || "net"; if (failed === "server" || failed === "sibuk") syncMsg = errText(r); break; }
+        if (!r.ok) { failed = r.err || "net"; if (failed === "server" || failed === "sibuk") syncMsg = errText(r); if (failed === "versi") { updNeeded = true; srvOk = false; } break; }
+        updNeeded = false;
         offline = false;
         const gone = {};
         (r.acks || []).forEach((a, i) => {
@@ -715,7 +782,7 @@ header { position: relative; }
         mergePull(r);
         D.cursor = r.cursor || D.cursor;
         if (Array.isArray(r.users)) D.users = r.users;
-        if (r.settings) D.settings = { shop: r.settings.shop || DEFAULT_SHOP, low: Number.isFinite(Number(r.settings.low)) ? Number(r.settings.low) : 10, prices: r.settings.prices || {} };
+        if (r.settings) D.settings = { shop: r.settings.shop || DEFAULT_SHOP, low: Number.isFinite(Number(r.settings.low)) ? Number(r.settings.low) : 50, prices: r.settings.prices || {} };
         if (r.me && cfg.sess) cfg.sess.user = r.me;
         if (r.token && cfg.sess) cfg.sess.token = r.token;
         if (r.now) D.skew = r.now - Date.now();
@@ -730,9 +797,11 @@ header { position: relative; }
       }
     } finally { syncing = false; }
     if (failed === "net") { offline = true; syncMsg = ""; }
+    else if (failed === "versi") { syncMsg = srvOld ? "Server (Code.gs di Google) belum diperbarui ke versi terbaru. Data HP ini aman dan akan dikirim setelah server diperbarui." : errText({ err: "versi" }); }
     else if (failed && failed !== "auth" && failed !== "server" && failed !== "sibuk") syncMsg = errText({ err: failed });
     else if (!failed) syncMsg = "";
     syncBad = !!failed && failed !== "net";
+    if (!failed) { srvOld = false; }
     renderChip(); renderSync(); renderWarn();
     if (manual) toast(failed === "net" ? "Belum ada sinyal. Data tersimpan dan akan dikirim nanti." : failed ? errText({ err: failed }) : "Sinkron selesai");
     if (again) { again = false; syncSoon(); }
@@ -779,6 +848,7 @@ header { position: relative; }
   let openSale = null, openFromHistory = false, confirmingDel = false;
   let lastFocus = null, modalState = null;
   const qty = {};
+  const sxv = {};
   PRODUCTS.forEach((p) => { qty[p.id] = 0; });
   const me = () => (cfg.sess ? cfg.sess.user : null);
   const isOwner = () => !!(cfg.sess && cfg.sess.user.role === "owner");
@@ -859,7 +929,7 @@ header { position: relative; }
     authShell("<h1>Kasir Yakult</h1><p class=\"sub\">" + esc(busy || "Memuat…") + "</p>");
     const r = await rawCall({ a: "status" });
     if (!r.ok) { showOffline(); return; }
-    if (r.v !== 5) { showConnect("Skrip server di Google belum versi terbaru. Tempel Code.gs yang baru lalu Deploy versi baru."); return; }
+    if (r.v !== CV) { showConnect("Skrip server di Google belum versi terbaru. Tempel Code.gs yang baru lalu Deploy versi baru."); return; }
     if (!r.init) { showAuth("setup"); return; }
     D.statusUsers = r.users || []; D.shopName = r.shop || ""; persist();
     showAuth("login", note);
@@ -996,6 +1066,8 @@ header { position: relative; }
     if (!w) return;
     let html = "";
     if (storageBad) html = "<span>Penyimpanan HP penuh atau dimatikan. Jangan memakai mode Privat. Data yang belum terkirim bisa hilang.</span>";
+    else if (srvOld) html = "<span>Server (Code.gs di Google) belum diperbarui ke versi terbaru. Data di HP ini aman dan akan terkirim setelah server diperbarui.</span>";
+    else if (updNeeded) html = "<span>Aplikasi perlu diperbarui. Tutup lalu buka lagi aplikasi ini.</span>";
     else if (Math.abs(D.skew || 0) > 5 * 60000) html = "<span>Jam HP ini berbeda sekitar " + Math.round(Math.abs(D.skew) / 60000) + " menit dari server. Aktifkan jam otomatis di Pengaturan HP agar tanggal nota benar.</span>";
     else if (D.rej.length) html = "<span>" + D.rej.length + " data ditolak server dan tidak tersimpan: " + esc(D.rej.slice(-2).map((x) => x.label).join("; ")) + '.</span><button class="btn" type="button" data-act="rej-clear">Mengerti</button>';
     w.innerHTML = html; w.hidden = !html;
@@ -1025,14 +1097,14 @@ header { position: relative; }
       const r = s.rows[p.id], used = r.masuk || r.bawa || r.kembali || r.koreksi || r.sold, st = statusOf(r.now, s.set && used);
       const sub = gud ? "Masuk " + nf(r.masuk) + " · Dibawa sales " + nf(r.bawa) + " · Kembali " + nf(r.kembali) : "Dibawa " + nf(r.bawa) + " · Kembali " + nf(r.kembali) + " · Koreksi " + (r.koreksi > 0 ? "+" : "") + nf(r.koreksi) + " · Terjual " + nf(r.sold);
       return '<div class="card stk"><div class="stk-head"><span class="dot" style="--c:' + p.color + '"></span><b>' + p.name + ' <span class="desc">' + esc(p.desc) + '</span></b><span class="pill ' + st.cls + '">' + st.text + "</span></div>" +
-        '<div class="stk-big num">' + (s.set && used ? nf(r.now) : "–") + ' <small>pak</small></div><p class="stk-sub num">' + sub + "</p></div>";
+        '<div class="stk-big num">' + (s.set && used ? nf(r.now) : "–") + ' <small>botol</small></div><p class="stk-sub num">' + sub + "</p></div>";
     }).join("");
     $("stkSalesBox").hidden = !(owner && gud);
     if (owner && gud) {
       const us = D.users.filter((x) => x.active !== false);
       $("stkSales").innerHTML = us.map((a) => {
         const x = stockOf(a.id);
-        return '<button type="button" class="lrow" data-act="stk-pick" data-id="' + esc(a.id) + '"><span class="lr-main"><b>' + esc(a.name) + "</b><small>" + (x.set ? "Stok bawa tercatat" : "Belum bawa barang") + '</small></span><span class="lr-side num">' + (x.set ? nf(stockTotal(x)) + " pak" : "–") + "</span></button>";
+        return '<button type="button" class="lrow" data-act="stk-pick" data-id="' + esc(a.id) + '"><span class="lr-main"><b>' + esc(a.name) + "</b><small>" + (x.set ? "Stok bawa tercatat" : "Belum bawa barang") + '</small></span><span class="lr-side num">' + (x.set ? nf(stockTotal(x)) + " botol" : "–") + "</span></button>";
       }).join("") || '<p class="empty">Belum ada sales.</p>';
     }
     // tutup hari
@@ -1067,9 +1139,9 @@ header { position: relative; }
   function batchDialog(kind) {
     const gud = kind === "masuk", fid = gud ? "GUDANG" : stkSel;
     const T = {
-      masuk: { title: "Barang masuk gudang", hint: "Isi jumlah pak yang baru masuk ke gudang. Kosongkan kode yang tidak masuk.", btn: "Simpan" },
-      bawa: { title: "Bawa barang · " + userName(fid), hint: "Isi jumlah pak yang diambil dari gudang untuk dibawa jualan. Kosongkan kode yang tidak dibawa.", btn: "Simpan" },
-      kembali: { title: "Kembalikan ke gudang · " + userName(fid), hint: "Isi jumlah pak yang dikembalikan ke gudang. Kosongkan kode yang tidak dikembalikan.", btn: "Simpan" }
+      masuk: { title: "Barang masuk gudang", hint: "Isi jumlah botol yang baru masuk ke gudang. Kosongkan kode yang tidak masuk.", btn: "Simpan" },
+      bawa: { title: "Bawa barang · " + userName(fid), hint: "Isi jumlah botol yang diambil dari gudang untuk dibawa jualan. Kosongkan kode yang tidak dibawa.", btn: "Simpan" },
+      kembali: { title: "Kembalikan ke gudang · " + userName(fid), hint: "Isi jumlah botol yang dikembalikan ke gudang. Kosongkan kode yang tidak dikembalikan.", btn: "Simpan" }
     }[kind];
     const s = stockOf(fid);
     openModal({
@@ -1099,7 +1171,7 @@ header { position: relative; }
     openModal({
       title: "Tutup hari · " + userName(fid),
       body: '<p class="note num">Hari ini: ' + nf(ds.length) + " nota, " + rp(omzet) + ". Hitung barang yang masih ada di tas, lalu isi di bawah.</p><div class=\"ld-grid\">" +
-        PRODUCTS.map((p) => '<label for="cl-' + p.id + '"><b>' + p.name + '</b> <span class="desc">' + esc(p.desc) + '</span><span class="blk">seharusnya ' + nf(s.rows[p.id].now) + ' pak</span></label><input id="cl-' + p.id + '" type="number" inputmode="numeric" min="0" max="999999" value="' + Math.max(0, s.rows[p.id].now) + '">').join("") +
+        PRODUCTS.map((p) => '<label for="cl-' + p.id + '"><b>' + p.name + '</b> <span class="desc">' + esc(p.desc) + '</span><span class="blk">seharusnya ' + nf(s.rows[p.id].now) + ' botol</span></label><input id="cl-' + p.id + '" type="number" inputmode="numeric" min="0" max="999999" value="' + Math.max(0, s.rows[p.id].now) + '">').join("") +
         '</div><label class="check" for="clBack"><input type="checkbox" id="clBack"><span>Kembalikan semua sisa ke gudang (kosongkan jika sisa dibawa lagi besok)</span></label>',
       actions: [{ label: "Batal" }, { label: "Tutup hari", cls: "primary", fn: () => {
         const rows = [];
@@ -1116,35 +1188,82 @@ header { position: relative; }
     });
   }
 
-  /* ================= toko / pelanggan ================= */
+  /* ================= toko / pelanggan / kunjungan ================= */
+  const DAYK = ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"];
+  const DAYN = { MIN: "Minggu", SEN: "Senin", SEL: "Selasa", RAB: "Rabu", KAM: "Kamis", JUM: "Jumat", SAB: "Sabtu" };
+  const DAYORDER = ["SEN", "SEL", "RAB", "KAM", "JUM", "SAB", "MIN"];
+  const todayK = () => DAYK[new Date().getDay()];
+  const isSched = (c, k) => Array.isArray(c.days) && c.days.indexOf(k) >= 0;
+  const orderedToday = (id) => { const t = dateKey(Date.now()); return notaList().some((n) => n.cust && n.cust.id === id && notaDate(n) === t); };
+  const myStores = () => { const u = me(); return u ? custList().filter((c) => c.sid === u.id) : []; };
+  let visitSel = "", shopWho = "";
+  const daysText = (c) => (Array.isArray(c.days) && c.days.length ? DAYORDER.filter((k) => c.days.indexOf(k) >= 0).map((k) => DAYN[k].slice(0, 3)).join(", ") : "");
+
+  function renderVisitCard() {
+    const el = $("visitCard");
+    if (!el) return;
+    const k = todayK(), mine = myStores().filter((c) => isSched(c, k));
+    if (!mine.length) { el.hidden = true; return; }
+    const done = mine.filter((c) => orderedToday(c.id)).length;
+    el.hidden = false;
+    $("visitText").textContent = "Kunjungan hari ini: " + done + " dari " + mine.length + " toko sudah order";
+  }
   function custStats(id) {
     let n = 0, botol = 0, total = 0, last = 0;
     notaList().forEach((x) => { if (x.cust && x.cust.id === id) { n++; botol += x.qty; total += x.total; if (x.ts > last) last = x.ts; } });
     return { n, botol, total, last };
   }
   function renderPelanggan() {
-    const q = val("cSearch").trim().toLowerCase(), all = custList();
-    const list = all.filter((c) => !q || (c.name + " " + c.contact + " " + c.phone + " " + c.address + " " + c.area).toLowerCase().indexOf(q) >= 0).sort((a, b) => a.name.localeCompare(b.name, "id"));
+    const owner = isOwner(), k = todayK();
+    if (owner) {
+      const sel = $("shopWho");
+      sel.innerHTML = '<option value="">Semua sales</option>' + D.users.filter((x) => x.active !== false).map((a) => '<option value="' + esc(a.id) + '">' + esc(a.name) + "</option>").join("");
+      sel.value = shopWho;
+    }
+    let base = custList();
+    if (owner && shopWho) base = base.filter((c) => c.sid === shopWho);
+    if (!visitSel) visitSel = base.some((c) => isSched(c, k)) ? "today" : "all";
+    const vs = $("visitSel");
+    vs.innerHTML = '<option value="today">Kunjungan hari ini (' + DAYN[k] + ")</option>" + DAYORDER.map((d) => '<option value="' + d + '">Jadwal ' + DAYN[d] + "</option>").join("") + '<option value="all">Semua toko</option><option value="none">Belum dijadwalkan</option>';
+    vs.value = visitSel;
+    const q = val("cSearch").trim().toLowerCase();
+    let list = base.filter((c) => !q || (c.name + " " + c.contact + " " + c.phone + " " + c.address + " " + c.area).toLowerCase().indexOf(q) >= 0);
+    const todayView = visitSel === "today";
+    if (todayView) list = list.filter((c) => isSched(c, k));
+    else if (DAYK.indexOf(visitSel) >= 0) list = list.filter((c) => isSched(c, visitSel));
+    else if (visitSel === "none") list = list.filter((c) => !c.days || !c.days.length);
     const stats = {};
     notaList().forEach((x) => { if (x.cust) { const s = stats[x.cust.id] || (stats[x.cust.id] = { n: 0, total: 0, last: 0 }); s.n++; s.total += x.total; if (x.ts > s.last) s.last = x.ts; } });
-    $("custCount").textContent = nf(all.length) + " toko";
+    const doneMap = {}; list.forEach((c) => { doneMap[c.id] = todayView ? orderedToday(c.id) : false; });
+    list.sort((a, b) => (doneMap[a.id] - doneMap[b.id]) || a.name.localeCompare(b.name, "id"));
+    const done = list.filter((c) => doneMap[c.id]).length;
+    $("custCount").textContent = todayView ? done + " dari " + list.length + " toko sudah order hari ini" : nf(list.length) + " toko";
     $("custList").innerHTML = list.length ? list.slice(0, 200).map((c) => {
       const s = stats[c.id] || { n: 0, total: 0, last: 0 };
       const sub = [c.contact, c.phone].filter(Boolean).join(" · ");
-      return '<button type="button" class="lrow" data-act="cust-edit" data-id="' + esc(c.id) + '"><span class="lr-main"><b>' + esc(c.name) + "</b><small>" + esc(sub || "Belum ada kontak") + (s.last ? " · order terakhir " + relText(relDays(dateKey(s.last))).toLowerCase() : "") + '</small></span><span class="lr-side num">' + rp(s.total) + "<small>" + nf(s.n) + " nota</small></span></button>";
-    }).join("") + (list.length > 200 ? '<p class="empty">Menampilkan 200 dari ' + nf(list.length) + ". Ketik untuk mempersempit.</p>" : "") : '<p class="empty">' + (all.length ? "Tidak ada toko yang cocok." : "Belum ada toko. Tekan Tambah toko, atau ketik nama toko langsung dari tab Kasir.") + "</p>";
+      const extra = [owner && c.sname ? "Sales: " + c.sname : "", !todayView ? daysText(c) : "", s.last ? "order terakhir " + relText(relDays(dateKey(s.last))).toLowerCase() : ""].filter(Boolean).join(" · ");
+      const side = todayView ? '<span class="pill ' + (doneMap[c.id] ? "ok" : "low") + '">' + (doneMap[c.id] ? "Sudah order" : "Belum") + "</span>" : rp(s.total) + "<small>" + nf(s.n) + " nota</small>";
+      return '<div class="vrow"><button type="button" class="lrow" data-act="cust-edit" data-id="' + esc(c.id) + '"><span class="lr-main"><b>' + esc(c.name) + "</b><small>" + esc(sub || "Belum ada kontak") + (extra ? " · " + esc(extra) : "") + '</small></span><span class="lr-side num">' + side + '</span></button><button type="button" class="btn primary" data-act="cust-order" data-id="' + esc(c.id) + '">Order</button></div>';
+    }).join("") + (list.length > 200 ? '<p class="empty">Menampilkan 200 dari ' + nf(list.length) + ". Ketik untuk mempersempit.</p>" : "") : '<p class="empty">' + (todayView ? "Tidak ada toko yang dijadwalkan hari ini. Atur hari kunjungan di data toko (tekan nama toko), atau pilih Semua toko." : base.length ? "Tidak ada toko yang cocok." : "Belum ada toko. Tekan Tambah toko, atau ketik nama toko langsung dari tab Kasir.") + "</p>";
   }
   function saveCust(rec) {
-    const full = Object.assign({ id: "", name: "", contact: "", phone: "", address: "", area: "", note: "", by: me().name, ed: Date.now(), del: 0 }, rec);
+    const u = me();
+    const full = Object.assign({ id: "", name: "", contact: "", phone: "", address: "", area: "", note: "", by: u.name, sid: u.id, sname: u.name, days: [], ed: Date.now(), del: 0 }, rec);
     full.ed = Date.now();
+    if (!isOwner()) { full.sid = u.id; full.sname = u.name; }
+    const own = D.users.find((x) => x.id === full.sid);
+    if (own) full.sname = own.name;
     D.pel[full.id] = full;
     D.queue = D.queue.filter((o) => !(o.t === "cust" && o.d.id === full.id));
-    D.queue.push({ k: newId("q"), t: "cust", d: { id: full.id, name: full.name, contact: full.contact, phone: full.phone, address: full.address, area: full.area, note: full.note, ed: full.ed }, u: me().id, tries: 0 });
+    const d = { id: full.id, name: full.name, contact: full.contact, phone: full.phone, address: full.address, area: full.area, note: full.note, ed: full.ed, days: full.days };
+    if (isOwner()) d.sid = full.sid;
+    D.queue.push({ k: newId("q"), t: "cust", d, u: u.id, tries: 0 });
     persist(); syncSoon();
     return full;
   }
-  const nameExists = (name, exceptId) => custList().some((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== exceptId);
+  const nameExists = (name, exceptId, sid) => custList().some((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== exceptId && (!sid || c.sid === sid));
   function renderCustInfo() {
+    renderVisitCard();
     const c = selCust ? D.pel[selCust] : null;
     if (selCust && (!c || c.del)) selCust = "";
     const cc = selCust ? D.pel[selCust] : null;
@@ -1163,7 +1282,14 @@ header { position: relative; }
     }).join("");
     const week = list.filter((s) => relDays(notaDate(s)) <= 6);
     const wt = week.reduce((a, s) => a + s.total, 0);
-    box.innerHTML = (info ? '<p class="cinfo">' + esc(info) + "</p>" : "") +
+    const ls = list.find((s) => s.sx);
+    let lastStock = "";
+    if (ls) {
+      const ord = {}; ls.items.forEach((i) => { ord[i.i] = (ord[i.i] || 0) + i.q; });
+      const parts = PRODUCTS.filter((p) => ls.sx[p.id] !== undefined).map((p) => esc(p.id) + " <b>" + nf(ls.sx[p.id] + (ord[p.id] || 0)) + "</b> <small>(sisa " + nf(ls.sx[p.id]) + " + order " + nf(ord[p.id] || 0) + ")</small>");
+      lastStock = '<div class="hist stoktoko"><h3>Stok toko terakhir dicek · ' + esc(relText(relDays(notaDate(ls)))) + " (" + esc(fmtShort(notaDate(ls))) + ')</h3><p class="note">' + parts.join(" · ") + "</p></div>";
+    }
+    box.innerHTML = (info ? '<p class="cinfo">' + esc(info) + "</p>" : "") + lastStock +
       '<div class="hist"><h3>Order sebelumnya</h3>' + (rows || '<p class="note">Belum pernah order.</p>') +
       (list.length ? '<p class="note num">7 hari terakhir: ' + nf(week.length) + " nota · " + rp(wt) + "</p>" : "") + "</div>";
   }
@@ -1171,7 +1297,7 @@ header { position: relative; }
     const s = D.nota[id];
     if (!s) return;
     PRODUCTS.forEach((p) => { qty[p.id] = 0; });
-    s.items.forEach((i) => { if (PBY[i.i]) qty[i.i] = Math.min(MAX, i.q); });
+    s.items.forEach((i) => { if (PBY[i.i]) qty[i.i] = Math.min(MAX, Math.round(i.q)); });
     $("cash").value = "";
     renderKasir();
     toast("Order disalin dengan harga sekarang. Cek jumlahnya lalu simpan.");
@@ -1185,18 +1311,19 @@ header { position: relative; }
     });
   }
   function renderPick() {
-    const q = val("pkQ").trim(), ql = q.toLowerCase();
+    const q = val("pkQ").trim(), ql = q.toLowerCase(), k = todayK(), owner = isOwner();
     const last = {};
     notaList().forEach((s) => { if (s.cust && !last[s.cust.id]) last[s.cust.id] = s; });
     const list = custList().filter((c) => !ql || (c.name + " " + c.contact + " " + c.phone + " " + c.address + " " + c.area).toLowerCase().indexOf(ql) >= 0);
-    list.sort((a, b) => { const la = last[a.id] ? last[a.id].ts : 0, lb = last[b.id] ? last[b.id].ts : 0; return lb - la || a.name.localeCompare(b.name, "id"); });
-    const exact = custList().some((c) => c.name.toLowerCase() === ql);
+    const pri = (c) => (isSched(c, k) && !orderedToday(c.id) ? 0 : 1);
+    list.sort((a, b) => pri(a) - pri(b) || (last[b.id] ? last[b.id].ts : 0) - (last[a.id] ? last[a.id].ts : 0) || a.name.localeCompare(b.name, "id"));
+    const exact = custList().some((c) => c.name.toLowerCase() === ql && (!owner || c.sid === me().id));
     let html = "";
-    if (q && !exact) html += '<button type="button" class="lrow" data-pk-new="1"><span class="lr-main"><b>+ Tambah toko “' + esc(q) + '”</b><small>Simpan sebagai toko baru dan langsung pilih</small></span></button>';
+    if (q && !exact) html += '<button type="button" class="lrow" data-pk-new="1"><span class="lr-main"><b>+ Tambah toko “' + esc(q) + '”</b><small>Simpan sebagai toko baru Anda dan langsung pilih</small></span></button>';
     if (!q) html += '<button type="button" class="lrow" data-pk=""><span class="lr-main"><b>Tanpa toko</b><small>Penjualan umum</small></span></button>';
     html += list.slice(0, 60).map((c) => {
-      const l = last[c.id];
-      return '<button type="button" class="lrow" data-pk="' + esc(c.id) + '"><span class="lr-main"><b>' + esc(c.name) + "</b><small>" + (l ? "Order terakhir " + esc(relText(relDays(notaDate(l))).toLowerCase()) + " · " + rp(l.total) : "Belum pernah order") + "</small></span></button>";
+      const l = last[c.id], sch = isSched(c, k);
+      return '<button type="button" class="lrow" data-pk="' + esc(c.id) + '"><span class="lr-main"><b>' + esc(c.name) + (sch ? '<span class="tag">Jadwal hari ini' + (orderedToday(c.id) ? " · sudah order" : "") + "</span>" : "") + "</b><small>" + (owner && c.sname ? "Sales: " + esc(c.sname) + " · " : "") + (l ? "Order terakhir " + esc(relText(relDays(notaDate(l))).toLowerCase()) + " · " + rp(l.total) : "Belum pernah order") + "</small></span></button>";
     }).join("");
     if (list.length > 60) html += '<p class="empty">Menampilkan 60 dari ' + nf(list.length) + ". Ketik untuk mempersempit.</p>";
     if (!html) html = '<p class="empty">Belum ada toko. Ketik nama toko di atas lalu tekan Tambah.</p>';
@@ -1208,7 +1335,7 @@ header { position: relative; }
     if (b.hasAttribute("data-pk-new")) {
       const name = val("pkQ").trim().slice(0, 60);
       if (!name) return;
-      if (nameExists(name, "")) { toast("Nama toko itu sudah ada. Pilih dari daftar."); return; }
+      if (nameExists(name, "", me().id)) { toast("Nama toko itu sudah ada. Pilih dari daftar."); return; }
       const rec = saveCust({ id: newId("c"), name });
       selCust = rec.id; closeModal(); renderKasir(); toast("Toko ditambahkan: " + name);
     } else if (b.hasAttribute("data-pk")) {
@@ -1216,12 +1343,16 @@ header { position: relative; }
     }
   }
   function customerDialog(id) {
-    const c = id ? D.pel[id] : null;
+    const c = id ? D.pel[id] : null, owner = isOwner();
     const hist = c ? custNotas(c.id).slice(0, 5) : [];
     const st = c ? custStats(c.id) : null;
+    const days = c && Array.isArray(c.days) ? c.days : [];
+    const ownerSid = c ? c.sid : (shopWho || me().id);
     openModal({
       title: c ? "Data toko" : "Toko baru",
       body: '<div class="fld"><label for="cfName">Nama toko / pelanggan</label><input id="cfName" type="text" maxlength="60" autocomplete="off" value="' + esc(c ? c.name : "") + '"></div>' +
+        (owner ? '<div class="fld"><label for="cfOwner">Milik sales</label><select id="cfOwner">' + D.users.filter((x) => x.active !== false || x.id === ownerSid).map((a) => '<option value="' + esc(a.id) + '"' + (a.id === ownerSid ? " selected" : "") + ">" + esc(a.name) + "</option>").join("") + "</select></div>" : "") +
+        '<div class="fld"><span class="lbl">Hari kunjungan</span><div class="days" id="cfDays">' + DAYORDER.map((d) => '<button type="button" class="daychip" data-d="' + d + '" aria-pressed="' + (days.indexOf(d) >= 0) + '">' + DAYN[d].slice(0, 3) + "</button>").join("") + "</div></div>" +
         '<div class="fld"><label for="cfContact">Nama kontak</label><input id="cfContact" type="text" maxlength="40" autocomplete="off" value="' + esc(c ? c.contact : "") + '"></div>' +
         '<div class="fld"><label for="cfPhone">Telepon</label><input id="cfPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="' + esc(c ? c.phone : "") + '"></div>' +
         '<div class="fld"><label for="cfArea">Area / rute</label><input id="cfArea" type="text" maxlength="40" autocomplete="off" value="' + esc(c ? c.area : "") + '"></div>' +
@@ -1233,9 +1364,10 @@ header { position: relative; }
           const s = D.nota[b.dataset.hid];
           if (s) { closeModal(); showReceipt(s, true); }
         }));
+        box.querySelectorAll(".daychip").forEach((b) => b.addEventListener("click", () => { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); }));
       },
       actions: [{ label: "Batal" },
-        ...(c && isOwner() ? [{ label: "Hapus", cls: "danger", fn: () => {
+        ...(c && owner ? [{ label: "Hapus", cls: "danger", fn: () => {
           confirmModal("Hapus toko?", "Data " + c.name + " dihapus dari daftar. Nota lama tetap tersimpan dengan nama toko tersebut.", "Hapus", () => {
             c.del = 1; D.queue = D.queue.filter((o) => !(o.t === "cust" && o.d.id === c.id));
             D.queue.push({ k: newId("q"), t: "cust_del", d: { id: c.id }, u: me().id, tries: 0 });
@@ -1248,8 +1380,10 @@ header { position: relative; }
         { label: "Simpan", cls: "primary", fn: () => {
           const name = val("cfName").trim();
           if (!name) { modalErr("Isi nama toko atau pelanggan."); return false; }
-          if (nameExists(name, c ? c.id : "")) { modalErr("Nama toko itu sudah ada."); return false; }
-          saveCust({ id: c ? c.id : newId("c"), name, contact: val("cfContact").trim(), phone: val("cfPhone").trim(), address: val("cfAddr").trim(), area: val("cfArea").trim(), note: val("cfNote").trim(), by: c ? c.by : me().name });
+          const sid = owner ? val("cfOwner") || me().id : me().id;
+          if (nameExists(name, c ? c.id : "", sid)) { modalErr("Sales ini sudah punya toko dengan nama itu."); return false; }
+          const chosen = Array.from(document.querySelectorAll("#cfDays .daychip")).filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.d);
+          saveCust({ id: c ? c.id : newId("c"), name, sid, days: chosen, contact: val("cfContact").trim(), phone: val("cfPhone").trim(), address: val("cfAddr").trim(), area: val("cfArea").trim(), note: val("cfNote").trim(), by: c ? c.by : me().name });
           renderCurrent(); toast("Toko disimpan");
         } }]
     });
@@ -1263,7 +1397,8 @@ header { position: relative; }
     row.innerHTML = '<div class="info"><div class="name"><span class="dot" style="--c:' + p.color + '"></span>' + p.name + '</div><div class="price num" id="p-' + p.id + '"></div></div>' +
       '<div class="stepper"><button type="button" data-act="minus" data-id="' + p.id + '" aria-label="Kurangi ' + p.name + '">&minus;</button>' +
       '<input id="q-' + p.id + '" class="num" type="number" inputmode="numeric" min="0" max="' + MAX + '" value="0" aria-label="Jumlah ' + p.name + '">' +
-      '<button type="button" class="plus" data-act="plus" data-id="' + p.id + '" aria-label="Tambah ' + p.name + '">+</button></div><div class="sum num" id="s-' + p.id + '"></div>';
+      '<button type="button" class="plus" data-act="plus" data-id="' + p.id + '" aria-label="Tambah ' + p.name + '">+</button></div><div class="sum num" id="s-' + p.id + '"></div>' +
+      '<div class="tokorow" id="t-' + p.id + '" hidden><label for="x-' + p.id + '">Sisa di toko</label><input id="x-' + p.id + '" class="num" type="number" inputmode="numeric" min="0" max="99999" placeholder="0" aria-label="Sisa stok ' + p.name + ' di toko (botol)"><span class="tot num" id="tt-' + p.id + '"></span></div>';
     itemsEl.appendChild(row);
   });
   const quickEl = $("quick");
@@ -1274,7 +1409,7 @@ header { position: relative; }
     QUICK.forEach((v) => { const b = document.createElement("button"); b.type = "button"; b.textContent = nf(v); b.dataset.act = "cash-quick"; b.dataset.cash = String(v); quickEl.appendChild(b); });
   })();
 
-  function totals() { let q = 0, t = 0, b = 0; PRODUCTS.forEach((p) => { q += qty[p.id]; b += qty[p.id] * p.isi; t += qty[p.id] * priceOf(p); }); return { q, t, b }; }
+  function totals() { let q = 0, t = 0, b = 0; PRODUCTS.forEach((p) => { q += qty[p.id]; b += qty[p.id]; t += qty[p.id] * priceOf(p); }); return { q, t, b }; }
   function cashValue() { const raw = val("cash").replace(/\D/g, ""); return raw ? parseInt(raw, 10) : 0; }
 
   function renderKasir() {
@@ -1288,13 +1423,17 @@ header { position: relative; }
       document.querySelector('[data-act="minus"][data-id="' + p.id + '"]').disabled = n === 0;
       let stk = "";
       if (s.set && (r.bawa || r.now)) stk = ' · <span class="stk-tag ' + (r.now <= 0 ? "bad" : r.now <= D.settings.low ? "low" : "") + '">Sisa ' + nf(r.now) + "</span>";
-      $("p-" + p.id).innerHTML = esc(p.desc) + "<br>" + rp(priceOf(p)) + " / pak" + stk;
-      let sum = n > 0 ? n + " &times; " + rp(priceOf(p)) + " = <strong>" + rp(n * priceOf(p)) + "</strong> <span>(" + nf(n * p.isi) + " botol)</span>" : "";
+      $("p-" + p.id).innerHTML = esc(p.desc) + "<br>" + rp(priceOf(p)) + " / botol" + stk;
+      let sum = n > 0 ? n + " &times; " + rp(priceOf(p)) + " = <strong>" + rp(n * priceOf(p)) + "</strong>" : "";
       if (n > 0 && s.set && n > r.now) sum += ' <span class="over">Melebihi stok (sisa ' + nf(r.now) + ")</span>";
       $("s-" + p.id).innerHTML = sum;
+      $("t-" + p.id).hidden = !selCust;
+      const xi = $("x-" + p.id);
+      if (document.activeElement !== xi) xi.value = sxv[p.id] === undefined ? "" : sxv[p.id];
+      $("tt-" + p.id).textContent = sxv[p.id] === undefined ? "" : "Total stok toko " + nf(sxv[p.id] + n) + " botol";
     });
     const tt = totals();
-    $("totalQty").textContent = nf(tt.q) + " pak · " + nf(tt.b);
+    $("totalQty").textContent = nf(tt.q);
     $("totalPrice").textContent = rp(tt.t);
     const cash = cashValue(), box = $("change");
     box.className = "change";
@@ -1304,7 +1443,8 @@ header { position: relative; }
     $("save").disabled = !(!saving && tt.q > 0 && (cash === 0 || cash >= tt.t));
   }
   function setQty(id, n) { n = parseInt(n, 10); if (isNaN(n) || n < 0) n = 0; if (n > MAX) n = MAX; qty[id] = n; renderKasir(); }
-  function resetOrder() { PRODUCTS.forEach((p) => { qty[p.id] = 0; }); $("cash").value = ""; selCust = ""; if (cfg.sess) renderKasir(); }
+  function setSx(id, v) { if (v === "" || v === null) delete sxv[id]; else { let n = parseInt(v, 10); if (isNaN(n) || n < 0) n = 0; if (n > 99999) n = 99999; sxv[id] = n; if (String(n) !== String(v)) $("x-" + id).value = n; } renderKasir(); }
+  function resetOrder() { PRODUCTS.forEach((p) => { qty[p.id] = 0; delete sxv[p.id]; }); $("cash").value = ""; selCust = ""; if (cfg.sess) renderKasir(); }
 
   function doSave() {
     if (saving) return;
@@ -1324,8 +1464,11 @@ header { position: relative; }
     const d0 = new Date(now);
     const inv = (u.kode || "X") + String(d0.getFullYear()).slice(2) + pad(d0.getMonth() + 1) + pad(d0.getDate()) + "-" + pad(no, 3);
     const id = "s" + now.toString(36) + rnd() + rnd();
+    const sx = {}; let hasSx = false;
+    if (cust) PRODUCTS.forEach((p) => { if (sxv[p.id] !== undefined) { sx[p.id] = sxv[p.id]; hasSx = true; } });
     const d = { id, ts: now, no, inv, items, cash: paid, cust, shop: D.settings.shop };
-    const sale = { id, inv, ts: now, no, uid: u.id, by: u.name, cust, items, qty: tt.b, total: tt.t, cash: paid, change: paid - tt.t, shop: D.settings.shop, del: 0 };
+    if (hasSx) d.sx = sx;
+    const sale = { id, inv, ts: now, no, uid: u.id, by: u.name, cust, items, sx: hasSx ? sx : null, qty: tt.b, total: tt.t, cash: paid, change: paid - tt.t, shop: D.settings.shop, del: 0 };
     D.nota[id] = sale; ver++;
     D.queue.push({ k: newId("q"), t: "sale", d, u: u.id, tries: 0 });
     if (!persist()) toast("Penyimpanan HP bermasalah. Segera sinkronkan.");
@@ -1368,14 +1511,14 @@ header { position: relative; }
       sel.innerHTML = '<option value="">Semua sales</option>' + D.users.map((a) => '<option value="' + esc(a.id) + '">' + esc(a.name) + "</option>").join("");
       sel.value = whoFilter;
     }
-    let omzet = 0, botol = 0, pak = 0;
-    ds.forEach((s) => { omzet += s.total; botol += s.qty; s.items.forEach((i) => { pak += i.q; }); });
-    $("summary").innerHTML = '<div class="omzet"><small>Omzet ' + esc(r.label) + '</small><strong class="num">' + rp(omzet) + '</strong></div><div class="stats"><div><b class="num">' + nf(ds.length) + "</b><span>nota</span></div><div><b class=\"num\">" + nf(pak) + "</b><span>pak</span></div>" + '<div><b class="num">' + nf(botol) + "</b><span>botol terjual</span></div></div>";
+    let omzet = 0, botol = 0;
+    ds.forEach((s) => { omzet += s.total; botol += s.qty; });
+    $("summary").innerHTML = '<div class="omzet"><small>Omzet ' + esc(r.label) + '</small><strong class="num">' + rp(omzet) + '</strong></div><div class="stats"><div><b class="num">' + nf(ds.length) + "</b><span>nota</span></div>" + '<div><b class="num">' + nf(botol) + "</b><span>botol terjual</span></div></div>";
 
     const rows = PRODUCTS.map((p) => ({ id: p.id, name: p.name, desc: p.desc, color: p.color, q: 0, t: 0 }));
     const idx = {}; rows.forEach((x) => { idx[x.id] = x; });
     ds.forEach((s) => s.items.forEach((i) => { const x = idx[i.i]; if (x) { x.q += i.q; x.t += i.q * i.p; } }));
-    $("breakdown").innerHTML = rows.map((x) => '<div class="brow"><span class="dot" style="--c:' + x.color + '"></span><span class="bn">' + esc(x.name) + ' <span class="desc">' + esc(x.desc) + '</span></span><span class="bq num">' + nf(x.q) + ' pak</span><span class="bt num">' + rp(x.t) + "</span></div>").join("");
+    $("breakdown").innerHTML = rows.map((x) => '<div class="brow"><span class="dot" style="--c:' + x.color + '"></span><span class="bn">' + esc(x.name) + ' <span class="desc">' + esc(x.desc) + '</span></span><span class="bq num">' + nf(x.q) + ' botol</span><span class="bt num">' + rp(x.t) + "</span></div>").join("");
 
     const by = {};
     ds.forEach((s) => { const k = s.by || "-"; const a = by[k] || (by[k] = { n: 0, b: 0, t: 0 }); a.n++; a.b += s.qty; a.t += s.total; });
@@ -1443,14 +1586,24 @@ header { position: relative; }
 
   /* ================= nota ================= */
   const pdesc = (c) => (PBY[c] ? PBY[c].desc : "");
+  function stokRows(s) {
+    if (!s.sx) return [];
+    const ord = {}; s.items.forEach((i) => { ord[i.i] = (ord[i.i] || 0) + i.q; });
+    return PRODUCTS.filter((p) => s.sx[p.id] !== undefined).map((p) => ({ id: p.id, sisa: s.sx[p.id], ord: ord[p.id] || 0, tot: s.sx[p.id] + (ord[p.id] || 0) }));
+  }
+  function stokTokoHTML(s) {
+    const r = stokRows(s);
+    if (!r.length) return "";
+    return '<hr><div class="r-sub">Stok di toko (botol)</div>' + r.map((x) => '<div class="r-line num"><span>' + esc(x.id) + " sisa " + nf(x.sisa) + " + order " + nf(x.ord) + "</span><span>" + nf(x.tot) + "</span></div>").join("");
+  }
   function receiptHTML(s) {
     const d = new Date(s.ts);
-    const items = s.items.map((i) => '<div><div class="r-name">' + esc(i.i) + " · " + esc(pdesc(i.i)) + '</div><div class="r-line num"><span>' + nf(i.q) + " pak x " + nf(i.p) + "</span><span>" + nf(i.q * i.p) + "</span></div></div>").join("");
+    const items = s.items.map((i) => '<div><div class="r-name">' + esc(i.i) + " · " + esc(pdesc(i.i)) + '</div><div class="r-line num"><span>' + nf(i.q) + " botol x " + nf(i.p) + "</span><span>" + nf(i.q * i.p) + "</span></div></div>").join("");
     return '<div class="r-head"><div class="r-shop">' + esc(s.shop || D.settings.shop) + '</div><div class="r-sub">Nota penjualan</div></div><hr>' +
       '<div class="r-meta num"><div class="r-line"><span>No</span><span>' + esc(s.inv) + '</span></div><div class="r-line"><span>Tanggal</span><span>' + esc(d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })) + '</span></div><div class="r-line"><span>Jam</span><span>' + fmtTime(s.ts) + "</span></div>" +
       (s.by ? '<div class="r-line"><span>Sales</span><span>' + esc(s.by) + "</span></div>" : "") +
       (s.cust ? '<div class="r-line"><span>Toko</span><span>' + esc(s.cust.name) + "</span></div>" + (s.cust.address ? '<div class="r-addr">' + esc(s.cust.address) + "</div>" : "") : "") +
-      '</div><hr><div class="r-items">' + items + '</div><hr><div class="r-sum num"><div class="r-line r-total"><span>Total (' + nf(s.qty) + " botol)</span><span>" + rp(s.total) + '</span></div><div class="r-line"><span>Tunai</span><span>' + rp(s.cash) + '</span></div><div class="r-line"><span>Kembalian</span><span>' + rp(s.change) + '</span></div></div><hr><div class="r-thanks">Terima kasih</div>';
+      '</div><hr><div class="r-items">' + items + '</div><hr><div class="r-sum num"><div class="r-line r-total"><span>Total (' + nf(s.qty) + " botol)</span><span>" + rp(s.total) + '</span></div><div class="r-line"><span>Tunai</span><span>' + rp(s.cash) + '</span></div><div class="r-line"><span>Kembalian</span><span>' + rp(s.change) + '</span></div></div>' + stokTokoHTML(s) + '<hr><div class="r-thanks">Terima kasih</div>';
   }
   function receiptText(s) {
     const W = 32, line = "-".repeat(W);
@@ -1461,8 +1614,11 @@ header { position: relative; }
     if (s.by) out.push(two("Sales", s.by));
     if (s.cust) { out.push(two("Toko", s.cust.name)); if (s.cust.address) out.push(s.cust.address); }
     out.push(line);
-    s.items.forEach((i) => { out.push(i.i + " " + pdesc(i.i)); out.push(two("  " + nf(i.q) + " pak x " + nf(i.p), nf(i.q * i.p))); });
-    out.push(line, two("Total (" + nf(s.qty) + " botol)", rp(s.total)), two("Tunai", rp(s.cash)), two("Kembalian", rp(s.change)), line, center("Terima kasih"));
+    s.items.forEach((i) => { out.push(i.i + " " + pdesc(i.i)); out.push(two("  " + nf(i.q) + " botol x " + nf(i.p), nf(i.q * i.p))); });
+    out.push(line, two("Total (" + nf(s.qty) + " botol)", rp(s.total)), two("Tunai", rp(s.cash)), two("Kembalian", rp(s.change)), line);
+    const sr = stokRows(s);
+    if (sr.length) { out.push("Stok di toko (botol)"); sr.forEach((x) => out.push(two(x.id + " sisa " + nf(x.sisa) + "+order " + nf(x.ord), nf(x.tot)))); out.push(line); }
+    out.push(center("Terima kasih"));
     return out.join("\n");
   }
   async function shareReceipt(s) {
@@ -1484,11 +1640,24 @@ header { position: relative; }
     if (lastFocus && lastFocus.focus && document.contains(lastFocus)) { try { lastFocus.focus(); } catch (e) {} }
   }
 
+  /* ================= cetak ================= */
+  function applyPaper() {
+    const w = cfg.paper, st = $("pageStyle");
+    if (!st) return;
+    st.textContent = w === "a4" ? "@page { size: A4; margin: 12mm; } @media print { .paper { width: 90mm !important; } }"
+      : "@page { size: " + w + "mm 297mm; margin: 2mm; } @media print { .paper { width: 100% !important; font-size: " + (w === "58" ? "10pt" : "11pt") + " !important; } }";
+  }
+  function printReceipt() {
+    applyPaper();
+    try { window.print(); } catch (e) { toast("Cetak tidak tersedia di browser ini. Pakai Bagikan atau Simpan .txt."); }
+  }
+
   /* ================= akun ================= */
   function renderAkun() {
     const u = me();
     $("whoami").textContent = "Masuk sebagai " + u.name + " (" + roleName(u.role) + "), kode nota " + (u.kode || "-") + ".";
     $("setLock").checked = !!cfg.lock;
+    if (document.activeElement !== $("setPaper")) $("setPaper").value = cfg.paper;
     if (u.role === "owner") {
       $("accList").innerHTML = D.users.map((a) => '<div class="acc-row"><span class="lr-main"><b>' + esc(a.name) + (a.id === u.id ? " (Anda)" : "") + (a.active === false ? " · nonaktif" : "") + "</b><small>" + roleName(a.role) + " · kode nota " + esc(a.kode || "-") + '</small></span><span class="btns"><button class="btn" type="button" data-act="acc-edit" data-id="' + esc(a.id) + '">Ubah</button>' + (a.id === u.id ? "" : '<button class="btn" type="button" data-act="acc-reset" data-id="' + esc(a.id) + '">Reset PIN</button>') + (a.id === u.id || a.role === "owner" ? "" : '<button class="btn ' + (a.active === false ? "" : "danger") + '" type="button" data-act="acc-toggle" data-id="' + esc(a.id) + '">' + (a.active === false ? "Aktifkan" : "Nonaktifkan") + "</button>") + "</span></div>").join("");
       if (document.activeElement !== $("setShop")) $("setShop").value = D.settings.shop;
@@ -1580,7 +1749,7 @@ header { position: relative; }
       const cutoff = Date.now() - 380 * 86400000;
       const custs = (Array.isArray(j.customers) ? j.customers : []).filter((c) => c && String(c.name || "").trim());
       const sales = (Array.isArray(j.sales) ? j.sales : []).filter((s) => s && Number(s.ts) > cutoff && Array.isArray(s.items) && s.items.some((i) => i && PBY[i.id] && Number(i.qty) > 0));
-      confirmModal("Pindahkan data lama?", "Ditemukan " + nf(custs.length) + " toko dan " + nf(sales.length) + " penjualan (hanya item per pak yang bisa dipindah). Penjualan akan tercatat atas nama akun Anda. Lanjutkan?", "Pindahkan", () => {
+      confirmModal("Pindahkan data lama?", "Ditemukan " + nf(custs.length) + " toko dan " + nf(sales.length) + " penjualan (jumlah per pak diubah menjadi botol; item satuan lama dilewati). Penjualan akan tercatat atas nama akun Anda. Lanjutkan?", "Pindahkan", () => {
         const map = {}; let nc = 0, ns = 0;
         const byName = {}; custList().forEach((c) => { byName[c.name.toLowerCase()] = c.id; });
         custs.forEach((c) => {
@@ -1592,10 +1761,10 @@ header { position: relative; }
         sales.forEach((s) => {
           const id = safe(s.id);
           if (D.nota[id]) return;
-          const items = s.items.filter((i) => i && PBY[i.id] && Number(i.qty) > 0).map((i) => ({ i: i.id, q: Math.min(9999, Math.floor(Number(i.qty))), p: Math.max(0, Math.round(Number(i.price) || 0)) }));
+          const items = s.items.filter((i) => i && PBY[i.id] && Number(i.qty) > 0).map((i) => ({ i: i.id, q: Math.min(9999, Math.floor(Number(i.qty) * PBY[i.id].isi)), p: Math.max(0, Math.round((Number(i.price) || 0) / PBY[i.id].isi)) }));
           const cid = s.cust && map[s.cust.id], c = cid ? D.pel[cid] : null;
           const cust = c ? { id: c.id, name: c.name, address: c.address || "", phone: c.phone || "" } : null;
-          const total = items.reduce((a, i) => a + i.q * i.p, 0), botol = items.reduce((a, i) => a + i.q * PBY[i.i].isi, 0);
+          const total = items.reduce((a, i) => a + i.q * i.p, 0), botol = items.reduce((a, i) => a + i.q, 0);
           const inv = String(s.sc ? "YK-" + dateKey(s.ts).replace(/-/g, "") + "-" + s.sc + "-" + pad(s.no || 1, 3) : "YK-" + dateKey(s.ts).replace(/-/g, "") + "-" + pad(s.no || 1, 3)).slice(0, 30);
           const cash = Math.max(total, Math.round(Number(s.cash) || 0));
           D.nota[id] = { id, inv, ts: Number(s.ts), no: Number(s.no) || 1, uid: me().id, by: me().name, cust, items, qty: botol, total, cash, change: cash - total, shop: D.settings.shop, del: 0 };
@@ -1683,10 +1852,13 @@ header { position: relative; }
         persist(); closeReceipt(); renderCurrent(); toast("Nota dihapus"); syncSoon();
         break;
       }
+      case "r-print": confirmingDel = false; setDelLabel(); if (openSale) printReceipt(); break;
       case "r-close": closeReceipt(); break;
+      case "cust-order": selCust = b.dataset.id; switchTab("kasir"); break;
+      case "visit-open": visitSel = "today"; switchTab("pelanggan"); break;
     }
   });
-  $("items").addEventListener("input", (e) => { if (e.target.tagName === "INPUT") setQty(e.target.id.replace("q-", ""), e.target.value); });
+  $("items").addEventListener("input", (e) => { if (e.target.tagName !== "INPUT") return; if (e.target.id.indexOf("x-") === 0) setSx(e.target.id.slice(2), e.target.value); else setQty(e.target.id.replace("q-", ""), e.target.value); });
   $("items").addEventListener("focusout", (e) => { if (e.target.tagName === "INPUT") renderKasir(); });
   $("cash").addEventListener("input", (e) => { const raw = e.target.value.replace(/\D/g, ""); e.target.value = raw ? parseInt(raw, 10).toLocaleString("id-ID") : ""; renderKasir(); });
   $("day").addEventListener("change", (e) => { if (e.target.value) { selectedDay = e.target.value; renderHistory(); } });
@@ -1703,7 +1875,10 @@ header { position: relative; }
     if (!ok) e.target.value = priceOf(p);
   });
   $("setShop").addEventListener("change", () => { const v = val("setShop").trim(); if (!v) { $("setShop").value = D.settings.shop; return; } saveSettingsRemote({ shop: v }, "Nama usaha disimpan"); });
-  $("setLow").addEventListener("change", () => { const n = Math.round(Number(val("setLow"))); if (!(isFinite(n) && n >= 0 && n <= 9999)) { $("setLow").value = D.settings.low; toast("Isi 0 sampai 9999."); return; } saveSettingsRemote({ low: n }, "Batas stok menipis disimpan"); });
+  $("setLow").addEventListener("change", () => { const n = Math.round(Number(val("setLow"))); if (!(isFinite(n) && n >= 0 && n <= 9999)) { $("setLow").value = D.settings.low; toast("Isi 0 sampai 99999."); return; } saveSettingsRemote({ low: n }, "Batas stok menipis disimpan"); });
+  $("setPaper").addEventListener("change", () => { cfg.paper = $("setPaper").value; persist(); applyPaper(); toast("Lebar kertas nota disimpan"); });
+  $("shopWho").addEventListener("change", (e) => { shopWho = e.target.value; visitSel = ""; renderPelanggan(); });
+  $("visitSel").addEventListener("change", (e) => { visitSel = e.target.value; renderPelanggan(); });
   $("setLock").addEventListener("change", () => { cfg.lock = $("setLock").checked; persist(); toast(cfg.lock ? "PIN diminta setiap aplikasi dibuka" : "Tetap masuk di HP ini"); });
   $("bkFile").addEventListener("change", (e) => { const f = e.target.files && e.target.files[0]; if (f) importBackup(f); e.target.value = ""; });
   $("modal").addEventListener("click", (e) => { if (e.target === $("modal") && modalState && !modalState.sticky) closeModal(); });
@@ -1731,6 +1906,7 @@ header { position: relative; }
     try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
   })();
   renderWarn();
+  applyPaper();
   if (!cfg.url) showConnect();
   else if (cfg.sess && cfg.lock) showLock();
   else if (cfg.sess) enterApp();
